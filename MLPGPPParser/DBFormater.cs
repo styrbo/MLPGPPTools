@@ -2,7 +2,10 @@
 
 public static class DBFormater {
     private const string ScreenshotsFolderLocalPath = @"/s/";
-    private const string ScreenshotPlaceholder = "https://derpicdn.net/img/view/2023/10/17/3221228.png";//"https://placehold.co/800x450/533483/eaeaea?text=Screenshot+1";
+
+    private const string
+        ScreenshotPlaceholder =
+            "https://derpicdn.net/img/view/2023/10/17/3221228.png"; //"https://placehold.co/800x450/533483/eaeaea?text=Screenshot+1";
 
     private static string GetMainDownloadURL(uint buildID) {
         return $"https://games.mare.by/{buildID}";
@@ -11,16 +14,179 @@ public static class DBFormater {
     private static string GetLabelText(Label label) {
         switch (label) {
             case Label.Genre:
-                return "genre";
+                return "Genre";
             case Label.Tags:
-                return "other";
+                return "Other";
+            case Label.Status:
+                return "Status";
+            case Label.Engine:
+                return "Engine";
+            case Label.Character:
+                return "Character";
+            case Label.Playtime:
+                return "Playtime";
+            case Label.AgeRestriction:
+                return "warning";
             default:
                 throw new ArgumentOutOfRangeException(nameof(label), label, null);
         }
     }
 
-    private static string GetPlatformText(Tag platform) {
-        switch (platform) {
+    private static string FormatTag(Tag tag) {
+        switch (tag) {
+            //Genre  
+            case Tag.visual_novel:
+                return "Visual Novel";
+            case Tag.puzzle:
+                return "Puzzle";
+            case Tag.action:
+                return "Action";
+            case Tag.rpg:
+                return "RPG";
+            case Tag.platformer:
+                return "Platformer";
+            case Tag.jrpg:
+                return "jRPG";
+            case Tag.Shoot_em_Up:
+                return "Shoot 'em Up";
+            case Tag.arcade:
+                return "Arcade";
+            case Tag.pointANDclick:
+                return "Point & Click";
+            case Tag.tamagotchi:
+                return "Tamagotchi";
+            case Tag.adventure:
+                return "Adventure";
+            case Tag.shooter:
+                return "Shooter";
+            case Tag.clicker:
+                return "Clicker";
+            case Tag.karaoke:
+                return "Karaoke";
+            case Tag.horror:
+                return "Horror";
+            case Tag.detective:
+                return "Detective";
+            case Tag.racing:
+                return "Racing";
+            case Tag.open_world:
+                return "Open World";
+            case Tag.side_scroller:
+                return "Side Scroller";
+            case Tag.survival:
+                return "Survival";
+            case Tag.tower_defence:
+                return "Tower Defence";
+            case Tag.mmo:
+                return "MMO";
+            case Tag.fighting:
+                return "Fighting";
+            case Tag.casual:
+                return "Casual";
+            case Tag.sport:
+                return "Sport";
+            case Tag.strategy:
+                return "Strategy";
+            case Tag.humor:
+                return "Humor";
+            case Tag.quest:
+                return "Quest";
+            case Tag.sandbox:
+                return "Sandbox";
+            case Tag.simulation:
+                return "Simulation";
+            case Tag.dress_up:
+                return "Dress Up";
+            case Tag.social:
+                return "Social";
+            //Tags    
+            case Tag._2d:
+                return "2D";
+            case Tag._3d:
+                return "3D";
+            case Tag.top_down:
+                return "Top Down";
+            case Tag.first_person:
+                return "First Person";
+            case Tag.thrid_person:
+                return "Third Person";
+            case Tag.cash_grab:
+                return "Cash Grab";
+            case Tag.official:
+                return "Official";
+            case Tag.anthro:
+                return "Anthro";
+            case Tag.coop:
+                return "Co-Op";
+            case Tag.online:
+                return "Online";
+            //Status         
+            case Tag.Released:
+                return "Released";
+            case Tag.In_Development:
+                return "In Development";
+            //Engine
+            case Tag.customORnone:
+                return "Custom/None";
+            case Tag.flash:
+                return "Flash";
+            case Tag.unity:
+                return "Unity";
+            case Tag.ue:
+                return "UE";
+            case Tag.godot:
+                return "Godot";
+            case Tag.gamemaker:
+                return "Gamemaker";
+            case Tag.construct:
+                return "Construct";
+            case Tag.rpgmaker:
+                return "RPGMaker";
+            case Tag.RenPy:
+                return "Ren'Py";
+            case Tag.blender:
+                return "Blender";
+            case Tag.roblox:
+                return "Roblox";
+            case Tag.html5:
+                return "HTML5";
+            case Tag.Java:
+                return "Java";
+            case Tag.Adventure_Game_Studio:
+                return "Adventure Game Studio";
+            case Tag.FM2K:
+                return "FM2K";
+            case Tag.Z_Engine:
+                return "Z Engine";
+            case Tag.LoveEngine:
+                return "LÖVE";
+            case Tag.ClickteamFusion:
+                return "Clickteam Fusion";
+            // Character
+            case Tag.M6:
+                return "M6";
+            case Tag.CMC:
+                return "CMC";
+            case Tag.Secondary_cast:
+                return "Secondary Cast";
+            case Tag.Background:
+                return "Background";
+            case Tag.OC:
+                return "OC";
+            //Playtime  
+            case Tag.LESS_5_min:
+                return "<5 min";
+            case Tag.FROM_5m_TO_30m:
+                return "5m-30m";
+            case Tag.FROM_30m_TO_2h:
+                return "30m-2h";
+            case Tag.FROM_2h_TO_4h:
+                return "2h-4h";
+            case Tag.FROM_4h_TO_10h:
+                return "4h-10h";
+            case Tag.MORE_10h:
+                return "10h+";
+            //platforms
             case Tag.Platform_Web:
                 return "Web";
             case Tag.Platform_Windows:
@@ -57,8 +223,11 @@ public static class DBFormater {
                 return "VR";
             case Tag.Platform_Flash:
                 return "Flash";
+            case Tag.NSFW:
+                return "NSFW";
+
             default:
-                throw new ArgumentOutOfRangeException(nameof(platform), platform, null);
+                throw new ArgumentOutOfRangeException(nameof(tag), tag, null);
         }
     }
 
@@ -70,16 +239,13 @@ public static class DBFormater {
             formatedGames[i] = FormatGame(game);
         }
 
-        return new SerializedGamesCollectionData() {
+        return new SerializedGamesCollectionData {
             games = formatedGames,
         };
     }
 
     private static GameSerializedData FormatGame(GameData game) {
-        
-        
-        
-        var gameData = new GameSerializedData() {
+        var gameData = new GameSerializedData {
             id = (int)game.Id,
             title = game.Name,
             author = game.Author,
@@ -106,11 +272,11 @@ public static class DBFormater {
             ConsoleDrawer.DrawError($"no builds for {game.Id}");
             return null;
         }
-        
+
         var result = game.Builds
             .Where(build => build != null)
             .Select(build => new SerializedDownloadData {
-                label = GetPlatformText(build.platform),
+                label = FormatTag(build.platform),
                 url = GetMainDownloadURL(build.Id),
                 version = build.Version
             })
@@ -123,7 +289,7 @@ public static class DBFormater {
     }
 
     private static string[] FormatPlatforms(GameData game) {
-        if(game.Builds == null || game.Builds.Count == 0) {
+        if (game.Builds == null || game.Builds.Count == 0) {
             ConsoleDrawer.DrawError($"no builds for {game.Id}");
             return [];
         }
@@ -131,7 +297,7 @@ public static class DBFormater {
         return game.Builds
             .Where(build => build != null)
             .Select(build => build.platform)
-            .Select(GetPlatformText)
+            .Select(FormatTag)
             .Distinct()
             .ToArray();
     }
@@ -139,58 +305,41 @@ public static class DBFormater {
     private static string FormatEngine(GameData game) {
         if (game.Tags.Tags.TryGetValue(Label.Engine, out var engineTags)) {
             var engine = engineTags[0];
-            return engine.ToString();
+            return FormatTag(engine);
         }
-        
-        ConsoleDrawer.DrawError($"unknown engine: for {game.Id}");
-        return "unknown";
+
+        //ConsoleDrawer.DrawError($"unknown engine: for {game.Id}");
+        return "Unknown";
     }
 
     private static string FormatStatus(GameData game) {
-        if(game.Tags.Tags.TryGetValue(Label.Status, out var values) == false)
-            return "released"; // assume status
+        if (game.Tags.Tags.TryGetValue(Label.Status, out var values) == false)
+            return FormatTag(Tag.Released);
 
         var value = values[0];
-
-        if (value == Tag.In_Development)
-            return "in_development";
-        else if (value == Tag.Released)
-            return "released";
-        
-        ConsoleDrawer.DrawError($"unknown status: for {game.Id}");
-        return "unknown";
-    }
-    
-    private static string FormatPlaytime(Tag playtimeTag) {
-        switch (playtimeTag) {
-            case Tag.LESS_5_min:
-                return "<5 min";
-            case Tag.FROM_5m_TO_30m:
-                return "5m-30m";
-            case Tag.FROM_30m_TO_2h:
-                return "30m-2h";
-            case Tag.FROM_2h_TO_4h:
-                return "2h-4h";
-            case Tag.FROM_4h_TO_10h:
-                return "4h-10h";
-            case Tag.MORE_10h:
-                return "10h+";
-            default:
-                return "unknown";
-        }
+        var status = FormatTag(value);
+        return status;
     }
 
     private static string[] FormatCharacters(TagsCollection collection) {
-        if(collection.Tags.TryGetValue(Label.Character, out var tags) == false)
-            return [];
-        
+        if (collection.Tags.TryGetValue(Label.Character, out var tags) == false)
+            return ["Unknown"];
+
         var characters = tags
-            .Select(t => t.ToString())
+            .Select(FormatTag)
             .ToArray();
-        
+
         return characters;
     }
 
+    private static string FormatPlaytime(Tag tag) {
+        if(tag == Tag.None)
+            return "Unknown";
+        
+        var playtime = FormatTag(tag);
+        return playtime;   
+    }
+    
     private static string[] GetScreenshotsPaths(List<Screenshot>? screenshots) {
         if (screenshots == null) {
             return [];
@@ -221,6 +370,7 @@ public static class DBFormater {
         var labelsForUse = new[] {
             Label.Genre,
             Label.Tags,
+            Label.AgeRestriction,
         };
 
         var tagsForUse = collection.Tags
@@ -229,12 +379,15 @@ public static class DBFormater {
 
 
         var formattedTags = new List<SerializedTagData>();
-        
+
         foreach (var keyPair in tagsForUse) {
             foreach (var tag in keyPair.Value) {
+                if (tag == Tag.SFW)
+                    continue;
+
                 formattedTags.Add(new SerializedTagData {
-                    label = GetLabelText(keyPair.Key),
-                    type = tag.ToString()
+                    label = FormatTag(tag),
+                    type = GetLabelText(keyPair.Key),
                 });
             }
         }

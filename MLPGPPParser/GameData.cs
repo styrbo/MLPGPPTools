@@ -7,6 +7,8 @@ public enum Label {
     Engine,
     Character,
     Playtime,
+    
+    AgeRestriction,
 }
 
 public enum Tag {
@@ -117,6 +119,10 @@ public enum Tag {
     Platform_Source_Code,
     Platform_VR,
     Platform_Flash,
+    
+    //Age restriction
+    SFW,
+    NSFW,
 }
 
 public class TagsCollection {
@@ -218,6 +224,9 @@ public class TagsCollection {
             case Tag.FROM_2h_TO_4h: return Label.Playtime;
             case Tag.FROM_4h_TO_10h: return Label.Playtime;
             case Tag.MORE_10h: return Label.Playtime;
+            
+            case Tag.NSFW: return Label.AgeRestriction;
+            case Tag.SFW: return Label.AgeRestriction;
             
             default: throw new Exception($"can't find label for {tag}");
         }

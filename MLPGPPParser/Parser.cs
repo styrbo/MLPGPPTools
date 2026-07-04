@@ -1,6 +1,9 @@
 ﻿namespace MLPGPPParser;
 
 public class Parser {
+
+    public const string UnknownSourceURL = "https://games.mare.by/-67";
+    
     public enum ColumnType : int {
         Id = 0,
         Name = 1,
@@ -60,7 +63,7 @@ public class Parser {
     }
 
     private static Tag GetTag(string tag, ColumnType column) {
-        tag = tag.ToLower();
+        tag = tag.ToLower().Replace(" ", "");
 
         //todo fix this shit
         if (tag == "roblox") {
@@ -72,7 +75,7 @@ public class Parser {
         }
 
         switch (tag) {
-            case "visual novel":
+            case "visualnovel":
                 return Tag.visual_novel;
             case "puzzle":
                 return Tag.puzzle;
@@ -84,11 +87,11 @@ public class Parser {
                 return Tag.platformer;
             case "jrpg":
                 return Tag.jrpg;
-            case "shoot 'em Up":
+            case "shoot'emup":
                 return Tag.Shoot_em_Up;
             case "arcade":
                 return Tag.arcade;
-            case "point & click":
+            case "point&click":
                 return Tag.pointANDclick;
             case "tamagotchi":
                 return Tag.tamagotchi;
@@ -106,13 +109,13 @@ public class Parser {
                 return Tag.detective;
             case "racing":
                 return Tag.racing;
-            case "open world":
+            case "openworld":
                 return Tag.open_world;
-            case "side scroller":
+            case "sidescroller":
                 return Tag.side_scroller;
             case "survival":
                 return Tag.survival;
-            case "tower defence":
+            case "towerdefence":
                 return Tag.tower_defence;
             case "mmo":
                 return Tag.mmo;
@@ -132,7 +135,7 @@ public class Parser {
                 return Tag.sandbox;
             case "simulation":
                 return Tag.simulation;
-            case "dress up":
+            case "dressup":
                 return Tag.dress_up;
             case "social":
                 return Tag.social;
@@ -140,13 +143,13 @@ public class Parser {
                 return Tag._2d;
             case "3d":
                 return Tag._3d;
-            case "top down":
+            case "topdown":
                 return Tag.top_down;
-            case "first person":
+            case "firstperson":
                 return Tag.first_person;
-            case "third person":
+            case "thirdperson":
                 return Tag.thrid_person;
-            case "cash grab":
+            case "cashgrab":
                 return Tag.cash_grab;
             case "official":
                 return Tag.official;
@@ -158,7 +161,7 @@ public class Parser {
                 return Tag.online;
             case "released":
                 return Tag.Released;
-            case "in Development":
+            case "indevelopment":
                 return Tag.In_Development;
             case "custom/none":
                 return Tag.customORnone;
@@ -182,7 +185,7 @@ public class Parser {
                 return Tag.html5;
             case "java":
                 return Tag.Java;
-            case "adventure game studio":
+            case "adventuregamestudio":
                 return Tag.Adventure_Game_Studio;
             case "fm2k":
                 return Tag.FM2K;
@@ -190,19 +193,19 @@ public class Parser {
                 return Tag.Z_Engine;
             case "löve":
                 return Tag.LoveEngine;
-            case "clickteam fusion":
+            case "clickteamfusion":
                 return Tag.ClickteamFusion;
             case "m6":
                 return Tag.M6;
             case "cmc":
                 return Tag.CMC;
-            case "secondary cast":
+            case "secondarycast":
                 return Tag.Secondary_cast;
             case "background":
                 return Tag.Background;
             case "oc":
                 return Tag.OC;
-            case "<5 min":
+            case "<5min":
                 return Tag.LESS_5_min;
             case "5m-30m":
                 return Tag.FROM_5m_TO_30m;
@@ -237,16 +240,21 @@ public class Parser {
                 return Tag.Platform_Switch;
             case "snes":
                 return Tag.Platform_SNES;
-            case "nintendo ds":
+            case "nintendods":
                 return Tag.Platform_NintendoDS;
             case "gba":
                 return Tag.Platform_GBA;
-            case "game boy":
+            case "gameboy":
                 return Tag.Platform_GameBoy;
-            case "source code":
+            case "sourcecode":
                 return Tag.Platform_Source_Code;
             case "vr":
                 return Tag.Platform_VR;
+            
+            case "sfw":
+                return Tag.SFW;
+            case "nsfw":
+                return Tag.NSFW;
 
             default:
                 return Tag.None;
@@ -297,19 +305,19 @@ public class Parser {
         for (var index = 0; index < sheetData.Count; index++) {
             var row = sheetData[index];
 
-            if (TryParseLine(games, row, out var errorMessage) == false) {
+            if (TryParseLine(games, row, index, out var errorMessage) == false) {
                 ConsoleDrawer.DrawError($"can't parse row {index} {errorMessage}");
 
                 continue;
             } else {
-                ConsoleDrawer.DrawText($"parsed row {index}");
+                //ConsoleDrawer.DrawText($"parsed row {index}");
             }
         }
 
         return games.Values.ToArray();
     }
 
-    public static bool IsValidGameEntry(IList<object> line, out string errorMessage) {
+    public static bool IsValidGameEntry(IList<object> line, int lineIndex, out string errorMessage) {
         if (line.All(o => string.IsNullOrWhiteSpace(o.ToString()))) {
             errorMessage = "empty lane";
             return false;
@@ -346,8 +354,8 @@ public class Parser {
         return true;
     }
 
-    public bool TryParseLine(IDictionary<uint, GameData> games, IList<object> line, out string errorMessage) {
-        if (IsValidGameEntry(line, out errorMessage) == false) {
+    public bool TryParseLine(IDictionary<uint, GameData> games, IList<object> line, int lineIndex, out string errorMessage) {
+        if (IsValidGameEntry(line, lineIndex, out errorMessage) == false) {
             return false;
         }
 
@@ -363,6 +371,7 @@ public class Parser {
             var characterData = GetDataFromCell(line, ColumnType.Characters);
             var playtimeData = GetDataFromCell(line, ColumnType.Playtime);
             var authors = GetDataFromCell(line, ColumnType.Creator);
+            var ageRestriction = GetDataFromCell(line, ColumnType.AgeRestriction);
 
             var releaseData = GetDataFromCell(line, ColumnType.ReleaseData);
 
@@ -383,13 +392,26 @@ public class Parser {
             if (IsCellHasContent(characterData)) {
                 var characters = GetTags(characterData);
                 tags = tags.Concat(characters);
+            } else {
+                ConsoleDrawer.DrawWarning($"row {lineIndex} has no characters");
             }
 
             var playtime = Tag.None;
             if (IsCellHasContent(playtimeData)) {
                 playtime = GetTag(playtimeData, ColumnType.Playtime);
                 tags = tags.Append(playtime);
+            } else {
+                ConsoleDrawer.DrawWarning($"row {lineIndex} has no playtime");
             }
+
+            var ageRestrictionTag = Tag.None;
+            if(IsCellHasContent(ageRestriction)) {
+                ageRestrictionTag = GetTag(ageRestriction, ColumnType.AgeRestriction);
+            } else {
+                ConsoleDrawer.DrawWarning($"row {lineIndex} has no age restriction, using NSFW");
+                ageRestrictionTag = Tag.NSFW;
+            }
+            tags = tags.Append(ageRestrictionTag);
 
             Screenshot heroScreenshot = null;
             List<Screenshot> otherScreenshots = null;
@@ -405,10 +427,13 @@ public class Parser {
             }
 
             var sourceURL = GetDataFromCell(line, ColumnType.Source);
+            if(IsCellHasContent(sourceURL) == false) {
+                ConsoleDrawer.DrawWarning($"row {lineIndex} has no source url, using 404 page");
+                sourceURL = UnknownSourceURL;
+            }
 
             if (tags.Contains(Tag.None)) {
-                errorMessage = "no valid tags";
-                return false;
+                ConsoleDrawer.DrawWarning($"row {lineIndex} has no tags");
             }
 
             gameData = new GameData(
