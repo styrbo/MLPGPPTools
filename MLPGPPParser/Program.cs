@@ -45,7 +45,7 @@ var api = new SheetsService(initializer);
 var request = api.Spreadsheets.Values.Get(config.sheetID, config.dataRange);
 
 ConsoleDrawer.DrawText("Loading screenshots data...");
-var screenshotCollection = ConsoleDrawer.RunTask(Task.Run(() => ScreenshotsCollection.LoadScreenshots(config.localScreenshotsDBPath)));
+var screenshotCollection = ConsoleDrawer.RunTask(Task.Run(() => ScreenshotsCollection.LoadCollection(config.localScreenshotsDBPath)));
 
 ConsoleDrawer.DrawText("Loading sheet data...");
 var sheetData = ConsoleDrawer.RunTask(request.ExecuteAsync());
@@ -74,20 +74,7 @@ File.WriteAllText(config.gamesJsonPath, json);
 
 ConsoleDrawer.DrawText("Moving Screenshots");
 
-var siteDirectory = @$"{config.siteLocalPath}/s/";
-if(Directory.Exists(siteDirectory))
-    Directory.Delete(siteDirectory, recursive:true);
-Directory.CreateDirectory(siteDirectory);
-
-var neededScreenshotsBuckets = games
-    .Where(g => g.HeroScreenshot != null)
-    .Select(g => g.HeroScreenshot.BucketId).Distinct();
-
-foreach (var screenshotsBucket in neededScreenshotsBuckets) {
-    FileUtilities.CopyDirectory(
-        $"{config.localScreenshotsDBPath}/{screenshotsBucket}",
-        $"{siteDirectory}{screenshotsBucket}", true);   
-}
+ConsoleDrawer.RunTask(Task.Run(() => screenshotCollection.Apply(config.localScreenshotsDBPath, games)));
 
 ConsoleDrawer.DrawText("Done!");
 
