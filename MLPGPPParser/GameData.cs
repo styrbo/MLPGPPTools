@@ -253,7 +253,7 @@ public record GameData(
     TagsCollection Tags,
     string ReleaseDate,
     string SourceURL,
-    string Author,
+    string[] Authors,
     Tag playtime,
     Screenshot HeroScreenshot,
     List<Screenshot> OtherScreenshots,
@@ -283,7 +283,7 @@ public class SerializedDownloadData {
 public record GameSerializedData {
     public int id;
     public string title;
-    public string author;
+    public string[] author;
     public string thumbnail;
     public string shortDescription;
     public string fullDescription;

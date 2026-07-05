@@ -255,7 +255,7 @@ public static class DBFormater {
         var gameData = new GameSerializedData {
             id = (int)game.Id,
             title = game.Name,
-            author = game.Author,
+            author = game.Authors,
             thumbnail = GetScreenshotPath(game.HeroScreenshot),
             shortDescription = game.ShortDescription,
             fullDescription = game.ShortDescription,

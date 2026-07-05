@@ -305,6 +305,19 @@ public class Parser {
         }
     }
 
+    private static string[] ParseAuthors(string lane) {
+        if (IsCellHasContent(lane) == false)
+            return ["?"];
+        
+        return lane
+            .Replace("\\", "/")
+            .Split('/')
+            .SelectMany(x => x.Split(','))
+            .Select(x => x.Trim())
+            .Where(x => string.IsNullOrWhiteSpace(x) == false)
+            .ToArray();
+    }
+
     public GameData[] ParseGames(IList<IList<object>> sheetData) {
         var games = new Dictionary<uint, GameData>();
 
@@ -376,12 +389,14 @@ public class Parser {
             var engineData = GetDataFromCell(line, ColumnType.Engine);
             var characterData = GetDataFromCell(line, ColumnType.Characters);
             var playtimeData = GetDataFromCell(line, ColumnType.Playtime);
-            var authors = GetDataFromCell(line, ColumnType.Creator);
+            var authorsLane = GetDataFromCell(line, ColumnType.Creator);
             var ageRestriction = GetDataFromCell(line, ColumnType.AgeRestriction);
 
             var releaseData = GetDataFromCell(line, ColumnType.ReleaseData);
 
             var screenshotsBucketId = GetDataFromCell(line, ColumnType.ScreenshotsBucketId);
+            
+            var authors = ParseAuthors(authorsLane);
 
             var tags = GetTags(genreOrTags);
 
@@ -449,7 +464,7 @@ public class Parser {
                 Tags: new TagsCollection(tags),
                 ReleaseDate: releaseData,
                 SourceURL: sourceURL,
-                Author: authors,
+                Authors: authors,
                 playtime: playtime,
                 HeroScreenshot: heroScreenshot,
                 OtherScreenshots: otherScreenshots,
