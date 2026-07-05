@@ -9,6 +9,8 @@ public enum Label {
     Playtime,
     
     AgeRestriction,
+    
+    BlackTags,
 }
 
 public enum Tag {
@@ -57,7 +59,6 @@ public enum Tag {
     thrid_person,
     cash_grab,
     official,
-    anthro,
     coop,
     online,
     
@@ -123,6 +124,11 @@ public enum Tag {
     //Age restriction
     SFW,
     NSFW,
+    
+    //Black Tags
+    Human,
+    Anthro,
+    Pony_Inspired,
 }
 
 public class TagsCollection {
@@ -186,7 +192,6 @@ public class TagsCollection {
             case Tag.thrid_person: return Label.Tags;
             case Tag.cash_grab: return Label.Tags;
             case Tag.official: return Label.Tags;
-            case Tag.anthro: return Label.Tags;
             case Tag.coop: return Label.Tags;
             case Tag.online: return Label.Tags;
             
@@ -227,6 +232,10 @@ public class TagsCollection {
             
             case Tag.NSFW: return Label.AgeRestriction;
             case Tag.SFW: return Label.AgeRestriction;
+            
+            case Tag.Anthro: return Label.BlackTags;
+            case Tag.Human: return Label.BlackTags;
+            case Tag.Pony_Inspired: return Label.BlackTags;
             
             default: throw new Exception($"can't find label for {tag}");
         }

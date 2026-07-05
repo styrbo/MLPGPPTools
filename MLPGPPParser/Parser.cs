@@ -153,8 +153,6 @@ public class Parser {
                 return Tag.cash_grab;
             case "official":
                 return Tag.official;
-            case "anthro":
-                return Tag.anthro;
             case "coop":
                 return Tag.coop;
             case "online":
@@ -255,6 +253,14 @@ public class Parser {
                 return Tag.SFW;
             case "nsfw":
                 return Tag.NSFW;
+            
+            //Black Tags
+            case "anthro":
+                return Tag.Anthro;
+            case "human":
+                return Tag.Human;
+            case "ponyinspired":
+                return Tag.Pony_Inspired;
 
             default:
                 return Tag.None;

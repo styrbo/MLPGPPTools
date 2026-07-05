@@ -27,6 +27,8 @@ public static class DBFormater {
                 return "Playtime";
             case Label.AgeRestriction:
                 return "warning";
+            case Label.BlackTags:
+                return "Black Tags";
             default:
                 throw new ArgumentOutOfRangeException(nameof(label), label, null);
         }
@@ -114,8 +116,6 @@ public static class DBFormater {
                 return "Cash Grab";
             case Tag.official:
                 return "Official";
-            case Tag.anthro:
-                return "Anthro";
             case Tag.coop:
                 return "Co-Op";
             case Tag.online:
@@ -225,6 +225,13 @@ public static class DBFormater {
                 return "Flash";
             case Tag.NSFW:
                 return "NSFW";
+            
+            case Tag.Anthro:
+                return "Anthro";
+            case Tag.Human:
+                return "Human";
+            case Tag.Pony_Inspired:
+                return "Pony Inspired";
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(tag), tag, null);
@@ -371,6 +378,7 @@ public static class DBFormater {
             Label.Genre,
             Label.Tags,
             Label.AgeRestriction,
+            Label.BlackTags,
         };
 
         var tagsForUse = collection.Tags
