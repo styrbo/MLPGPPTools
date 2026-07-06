@@ -3,9 +3,15 @@
 public static class DBFormater {
     private const string ScreenshotsFolderLocalPath = @"/s/";
 
-    private const string
-        ScreenshotPlaceholder =
-            "https://derpicdn.net/img/view/2023/10/17/3221228.png"; //"https://placehold.co/800x450/533483/eaeaea?text=Screenshot+1";
+    private static readonly string[] ScreenshotsPlaceholders = [
+        "/assets/gamarenopic1.jpg",
+        "/assets/gamarenopic2.jpg",
+        "/assets/gamarenopic3.jpg",
+    ];
+    
+    private static int _currentPlaceholderScreenshotIndex = 0;
+
+    //"https://derpicdn.net/img/view/2023/10/17/3221228.png"; //"https://placehold.co/800x450/533483/eaeaea?text=Screenshot+1";
 
     private static string GetMainDownloadURL(uint buildID) {
         return $"https://games.mare.by/{buildID}";
@@ -365,7 +371,9 @@ public static class DBFormater {
 
     private static string GetScreenshotPath(Screenshot? screenshot) {
         if (screenshot == null) {
-            return ScreenshotPlaceholder;
+            _currentPlaceholderScreenshotIndex = (_currentPlaceholderScreenshotIndex + 1) % ScreenshotsPlaceholders.Length;
+            
+            return ScreenshotsPlaceholders[_currentPlaceholderScreenshotIndex];
         }
 
         var pathToScreenshot = $"{ScreenshotsFolderLocalPath}{screenshot.BucketId}/{screenshot.Id}.{screenshot.format}";

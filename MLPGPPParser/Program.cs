@@ -5,7 +5,18 @@ using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using MLPGPPParser;
 
+/*
 Console.WriteLine("Hello, World!");
+
+var path = @"O:\MLGPP\s1";
+var emptyDirsCount = 1000;
+for (int i = 0; i < emptyDirsCount; i++) {
+    var dir = $"{path}\\{i}";
+    if (Directory.Exists(dir)) continue;
+        Directory.CreateDirectory(dir);
+}
+*/
+
 
 var configPath = $@"{Environment.CurrentDirectory}\Resources\config.json";
 
@@ -69,12 +80,11 @@ var json = JsonSerializer.Serialize(formatedGames, jsonOptions);
 
 ConsoleDrawer.DrawText("Saving Json");
 
-File.Delete(config.gamesJsonPath);
 File.WriteAllText(config.gamesJsonPath, json);
 
 ConsoleDrawer.DrawText("Moving Screenshots");
 
-ConsoleDrawer.RunTask(Task.Run(() => screenshotCollection.Apply(config.localScreenshotsDBPath, games)));
+ConsoleDrawer.RunTask(Task.Run(() => screenshotCollection.Apply(config.siteLocalPath, games)));
 
 ConsoleDrawer.DrawText("Done!");
 

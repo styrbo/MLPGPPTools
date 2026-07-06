@@ -26,10 +26,10 @@ public class ScreenshotsCollection {
     }
 
     public void Apply(string targetLocationRoot, GameData[] games) {
-        var siteDirectory = @$"{targetLocationRoot}/s/";
-        if(Directory.Exists(siteDirectory))
-            Directory.Delete(siteDirectory, recursive:true);
-        Directory.CreateDirectory(siteDirectory);
+        var screenshotsOnSiteDirectory = @$"{targetLocationRoot}/s/";
+        if(Directory.Exists(screenshotsOnSiteDirectory))
+            Directory.Delete(screenshotsOnSiteDirectory, recursive:true);
+        Directory.CreateDirectory(screenshotsOnSiteDirectory);
 
         var neededScreenshotsBuckets = games
             .Where(g => g.HeroScreenshot != null)
@@ -37,7 +37,7 @@ public class ScreenshotsCollection {
 
         foreach (var screenshotsBucket in neededScreenshotsBuckets) {
             
-            var targetBucketPath = $"{siteDirectory}{screenshotsBucket}";
+            var targetBucketPath = $"{screenshotsOnSiteDirectory}{screenshotsBucket}";
             
             FileUtilities.CopyDirectory(
                 $"{_dbPath}/{screenshotsBucket}",
