@@ -8,13 +8,21 @@ public static class DBFormater {
         "/assets/gamarenopic2.jpg",
         "/assets/gamarenopic3.jpg",
     ];
-    
+
+    private const string BuildLabelDownloadOption = "Download";
+    private const string BuildLabelPlayOnOurEmulatorOption = "Play";
+    private const DownloadServerType MainServer = DownloadServerType.MareBy;
+
     private static int _currentPlaceholderScreenshotIndex = 0;
 
     //"https://derpicdn.net/img/view/2023/10/17/3221228.png"; //"https://placehold.co/800x450/533483/eaeaea?text=Screenshot+1";
 
     private static string GetMainDownloadURL(uint buildID) {
         return $"https://games.mare.by/{buildID}";
+    }
+
+    private static string GetFlashEmulatorURL(uint buildID) {
+        return $"https://flash.mare.by/g?id={buildID}";
     }
 
     private static string GetLabelText(Label label) {
@@ -37,6 +45,19 @@ public static class DBFormater {
                 return "Black Tags";
             default:
                 throw new ArgumentOutOfRangeException(nameof(label), label, null);
+        }
+    }
+
+    private static string GetServerLabelText(DownloadServerType serverType) {
+        switch (serverType) {
+            case DownloadServerType.MareBy:
+                return "mare.by";
+            case DownloadServerType.Telegram:
+                return "telegram";
+            case DownloadServerType.PoneRs:
+                return "pone.rs";
+            default:
+                throw new ArgumentOutOfRangeException(nameof(serverType), serverType, null);
         }
     }
 
@@ -168,6 +189,9 @@ public static class DBFormater {
                 return "LÖVE";
             case Tag.ClickteamFusion:
                 return "Clickteam Fusion";
+            case Tag.GDevelop:
+                return "GDevelop";
+
             // Character
             case Tag.M6:
                 return "M6";
@@ -229,9 +253,12 @@ public static class DBFormater {
                 return "VR";
             case Tag.Platform_Flash:
                 return "Flash";
+
             case Tag.NSFW:
                 return "NSFW";
-            
+            case Tag.Gore:
+                return "Gore";
+
             case Tag.Anthro:
                 return "Anthro";
             case Tag.Human:
@@ -288,10 +315,30 @@ public static class DBFormater {
 
         var result = game.Builds
             .Where(build => build != null)
-            .Select(build => new SerializedDownloadData {
-                label = FormatTag(build.platform),
-                url = GetMainDownloadURL(build.Id),
-                version = build.Version
+            .SelectMany(build => {
+                var list = new List<SerializedDownloadData>();
+
+                list.Add(new SerializedDownloadData {
+                        label = FormatTag(build.platform),
+                        url = GetMainDownloadURL(build.Id),
+                        version = build.Version,
+                        buttonText = BuildLabelDownloadOption,
+                        mirrors = FormatMirrors(build)
+                    }
+                );
+
+                if (build.platform == Tag.Platform_Flash) {
+                    list.Add(new SerializedDownloadData {
+                            label = FormatTag(Tag.Platform_Flash),
+                            url = GetFlashEmulatorURL(build.Id),
+                            version = build.Version,
+                            buttonText = BuildLabelPlayOnOurEmulatorOption,
+                            mirrors = []
+                        }
+                    );
+                }
+
+                return list;
             })
             .ToArray();
 
@@ -299,6 +346,27 @@ public static class DBFormater {
             return null;
 
         return result;
+    }
+
+    private static BuildMirrorData[] FormatMirrors(GameBuild build) {
+        
+        var result = build.servers
+            .Where(server => {
+                if (string.IsNullOrEmpty(server.url))
+                    return false;
+
+                if (server.type == MainServer)
+                    return false;
+
+                return true;
+            })
+            .Select(server => new BuildMirrorData {
+                label = GetServerLabelText(server.type),
+                url = server.url
+            });
+
+
+        return result.ToArray();
     }
 
     private static string[] FormatPlatforms(GameData game) {
@@ -346,13 +414,13 @@ public static class DBFormater {
     }
 
     private static string FormatPlaytime(Tag tag) {
-        if(tag == Tag.None)
+        if (tag == Tag.None)
             return "Unknown";
-        
+
         var playtime = FormatTag(tag);
-        return playtime;   
+        return playtime;
     }
-    
+
     private static string[] GetScreenshotsPaths(List<Screenshot>? screenshots) {
         if (screenshots == null) {
             return [];
@@ -371,8 +439,9 @@ public static class DBFormater {
 
     private static string GetScreenshotPath(Screenshot? screenshot) {
         if (screenshot == null) {
-            _currentPlaceholderScreenshotIndex = (_currentPlaceholderScreenshotIndex + 1) % ScreenshotsPlaceholders.Length;
-            
+            _currentPlaceholderScreenshotIndex =
+                (_currentPlaceholderScreenshotIndex + 1) % ScreenshotsPlaceholders.Length;
+
             return ScreenshotsPlaceholders[_currentPlaceholderScreenshotIndex];
         }
 

@@ -85,6 +85,7 @@ public enum Tag {
     Z_Engine,
     LoveEngine,
     ClickteamFusion,
+    GDevelop,
     
     //Character
     M6,
@@ -124,11 +125,19 @@ public enum Tag {
     //Age restriction
     SFW,
     NSFW,
+    Gore,
     
     //Black Tags
     Human,
     Anthro,
     Pony_Inspired,
+}
+
+public enum DownloadServerType {
+    None,
+    MareBy,
+    Telegram,
+    PoneRs,
 }
 
 public class TagsCollection {
@@ -216,6 +225,7 @@ public class TagsCollection {
             case Tag.Z_Engine: return Label.Engine;
             case Tag.LoveEngine: return Label.Engine;
             case Tag.ClickteamFusion: return Label.Engine;
+            case Tag.GDevelop: return Label.Engine;
             
             case Tag.M6: return Label.Character;
             case Tag.CMC: return Label.Character;
@@ -232,6 +242,7 @@ public class TagsCollection {
             
             case Tag.NSFW: return Label.AgeRestriction;
             case Tag.SFW: return Label.AgeRestriction;
+            case Tag.Gore: return Label.AgeRestriction;
             
             case Tag.Anthro: return Label.BlackTags;
             case Tag.Human: return Label.BlackTags;
@@ -244,7 +255,9 @@ public class TagsCollection {
 
 public record Screenshot(uint BucketId, uint Id, string format);
 
-public record GameBuild(uint Id, string Version, string ReleaseDate, Tag platform);
+public record GameBuild(uint Id, string Version, string ReleaseDate, Tag platform, DownloadServer[] servers);
+
+public record DownloadServer(DownloadServerType type, string url);
 
 public record GameData(
     uint Id,
@@ -277,6 +290,14 @@ public class SerializedDownloadData {
     public string label;
     public string version; // can be empty
     public string url;
+    public string buttonText;
+    public BuildMirrorData[] mirrors;
+}
+
+[Serializable]
+public class BuildMirrorData {
+    public string url;
+    public string label;
 }
 
 [Serializable]

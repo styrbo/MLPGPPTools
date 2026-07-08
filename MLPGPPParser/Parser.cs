@@ -9,6 +9,9 @@ public class Parser {
         Name = 1,
         Version = 2,
         Platform = 3,
+        DownloadServerTelegram = 4,
+        DownloadServerMareBy = 5,
+        
         Status = 6,
         Engine = 7,
         Source = 8,
@@ -193,6 +196,9 @@ public class Parser {
                 return Tag.LoveEngine;
             case "clickteamfusion":
                 return Tag.ClickteamFusion;
+            case "gdevelop":
+                return Tag.GDevelop; 
+            
             case "m6":
                 return Tag.M6;
             case "cmc":
@@ -253,6 +259,8 @@ public class Parser {
                 return Tag.SFW;
             case "nsfw":
                 return Tag.NSFW;
+            case "gore":
+                return Tag.Gore;
             
             //Black Tags
             case "anthro":
@@ -508,9 +516,24 @@ public class Parser {
         }
 
         var platform = GetTag(platformText, ColumnType.Platform);
+        
+        var downloadServers = new List<DownloadServer>();
+        TryAddDownloadServer(line, ColumnType.DownloadServerTelegram, DownloadServerType.Telegram, downloadServers);
+        TryAddDownloadServer(line, ColumnType.DownloadServerMareBy, DownloadServerType.MareBy, downloadServers);
 
-        build = new GameBuild(buildId, version, releaseDate, platform);
+        build = new GameBuild(buildId, version, releaseDate, platform, downloadServers.ToArray());
         errorMessage = "";
         return true;
+    }
+
+    private void TryAddDownloadServer(IList<object> line, ColumnType column, DownloadServerType type, List<DownloadServer> list) {
+        var urlData = GetDataFromCell(line, column);
+        
+        if(IsCellHasContent(urlData) == false) {
+            return;
+        }
+        
+        var downloadServer = new DownloadServer(type, urlData);
+        list.Add(downloadServer);
     }
 }
