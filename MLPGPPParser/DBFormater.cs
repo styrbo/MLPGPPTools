@@ -56,6 +56,8 @@ public static class DBFormater {
                 return "telegram";
             case DownloadServerType.PoneRs:
                 return "pone.rs";
+            case DownloadServerType.Scrogne:
+                return "Scrogne";
             default:
                 throw new ArgumentOutOfRangeException(nameof(serverType), serverType, null);
         }

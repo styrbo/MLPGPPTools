@@ -136,6 +136,7 @@ public enum Tag {
 public enum DownloadServerType {
     None,
     MareBy,
+    Scrogne,
     Telegram,
     PoneRs,
 }
@@ -262,7 +263,7 @@ public record DownloadServer(DownloadServerType type, string url);
 public record GameData(
     uint Id,
     string Name,
-    string ShortDescription,
+    string Description,
     TagsCollection Tags,
     string ReleaseDate,
     string SourceURL,

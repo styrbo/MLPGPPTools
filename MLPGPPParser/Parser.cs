@@ -9,8 +9,10 @@ public class Parser {
         Name = 1,
         Version = 2,
         Platform = 3,
+        
         DownloadServerTelegram = 4,
         DownloadServerMareBy = 5,
+        DownloadServerScrogne = 25,
         
         Status = 6,
         Engine = 7,
@@ -468,7 +470,7 @@ public class Parser {
             gameData = new GameData(
                 Id: gameID,
                 Name: gameName,
-                ShortDescription: shortDescription,
+                Description: shortDescription,
                 Tags: new TagsCollection(tags),
                 ReleaseDate: releaseData,
                 SourceURL: sourceURL,
@@ -518,6 +520,7 @@ public class Parser {
         var platform = GetTag(platformText, ColumnType.Platform);
         
         var downloadServers = new List<DownloadServer>();
+        TryAddDownloadServer(line, ColumnType.DownloadServerScrogne, DownloadServerType.Scrogne, downloadServers);
         TryAddDownloadServer(line, ColumnType.DownloadServerTelegram, DownloadServerType.Telegram, downloadServers);
         TryAddDownloadServer(line, ColumnType.DownloadServerMareBy, DownloadServerType.MareBy, downloadServers);
 
