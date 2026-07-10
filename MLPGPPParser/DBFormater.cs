@@ -290,8 +290,8 @@ public static class DBFormater {
             title = game.Name,
             author = game.Authors,
             thumbnail = GetScreenshotPath(game.HeroScreenshot),
-            shortDescription = game.ShortDescription,
-            fullDescription = game.ShortDescription,
+            shortDescription = FormatShortDescription(game.Description),
+            fullDescription = game.Description,
             tags = FormatTags(game.Tags),
             characters = FormatCharacters(game.Tags),
             playtime = FormatPlaytime(game.playtime),
@@ -381,6 +381,16 @@ public static class DBFormater {
             .Select(FormatTag)
             .Distinct()
             .ToArray();
+    }
+    
+    
+    private static string FormatShortDescription(string description) {
+        const int maxCharacters = 50;
+        
+        if (description.Length <= maxCharacters)
+            return description;
+        
+        return description.Substring(0, maxCharacters) + "...";
     }
 
     private static string FormatEngine(GameData game) {
