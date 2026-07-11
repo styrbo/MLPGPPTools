@@ -144,6 +144,9 @@ public class Parser {
                 return Tag.dress_up;
             case "social":
                 return Tag.social;
+            case "stealth":
+                return Tag.stealth;
+            
             case "2d":
                 return Tag._2d;
             case "3d":

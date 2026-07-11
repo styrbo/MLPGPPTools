@@ -50,6 +50,7 @@ public enum Tag {
     simulation,
     dress_up,
     social,
+    stealth,
     
     //Tags
     _2d,
@@ -194,6 +195,7 @@ public class TagsCollection {
             case Tag.simulation: return Label.Genre;
             case Tag.dress_up: return Label.Genre;
             case Tag.social: return Label.Genre;
+            case Tag.stealth: return Label.Genre;
             
             case Tag._2d: return Label.Tags;
             case Tag._3d: return Label.Tags;

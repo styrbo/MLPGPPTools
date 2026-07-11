@@ -130,6 +130,8 @@ public static class DBFormater {
                 return "Dress Up";
             case Tag.social:
                 return "Social";
+            case Tag.stealth:
+                return "Stealth";
             //Tags    
             case Tag._2d:
                 return "2D";
