@@ -299,7 +299,7 @@ public record GameData(
             .Where(b => b != null)
             .OrderBy(b => {
                 
-                var isBuildIsRelease = b.releaseStatus == Tag.Released;
+                var isBuildInDevelopment = b.releaseStatus == Tag.In_Development;
                 
                 // if build is release then it should count as lower in this list
                 
@@ -307,7 +307,7 @@ public record GameData(
                     return new DateTime();
                 }
                 
-                return b.ReleaseDate.DateTime - (isBuildIsRelease ? TimeSpan.Zero : TimeSpan.FromDays(365 * 100));
+                return b.ReleaseDate.DateTime + (isBuildInDevelopment ? TimeSpan.FromDays(365 * 100) : TimeSpan.Zero);
             })
             .FirstOrDefault();
         
