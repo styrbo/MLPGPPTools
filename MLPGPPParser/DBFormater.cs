@@ -335,13 +335,14 @@ public static class DBFormater {
     }
 
     private static SerializedDownloadData[] FormatDownloads(GameData game) {
-        if (game.Builds == null || game.Builds.Count == 0) {
+        if (game.Versions == null || game.Versions.Count == 0) {
             ConsoleDrawer.DrawError($"no builds for {game.Id}");
             return null;
         }
 
-        var result = game.Builds
-            .Where(build => build != null)
+        var result = game.Versions
+            .Where(version => version.Build != null)
+            .Select(version => version.Build)
             .SelectMany(build => {
                 var list = new List<SerializedDownloadData>();
 
@@ -369,8 +370,10 @@ public static class DBFormater {
             })
             .ToArray();
 
-        if (result.Length == 0)
+        if (result.Length == 0) {
+            ConsoleDrawer.DrawError($"no builds for {game.Id}");
             return null;
+        }
 
         return result;
     }
@@ -397,12 +400,13 @@ public static class DBFormater {
     }
 
     private static string[] FormatPlatforms(GameData game) {
-        if (game.Builds == null || game.Builds.Count == 0) {
+        if (game.Versions == null || game.Versions.Count == 0) {
             ConsoleDrawer.DrawError($"no builds for {game.Id}");
             return [];
         }
 
-        return game.Builds
+        return game.Versions
+            .Select(version => version.Build)
             .Where(build => build != null)
             .Select(build => build.platform)
             .Select(FormatTag)

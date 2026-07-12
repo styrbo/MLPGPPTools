@@ -509,6 +509,12 @@ public class Parser {
             if (tags.Contains(Tag.None)) {
                 ConsoleDrawer.DrawWarning($"row {lineIndex} has no tags");
             }
+            
+            var releaseDateText = GetDataFromCell(line, ColumnType.ReleaseData);
+            var addedDataText = GetDataFromCell(line, ColumnType.DateAdded);
+            var releaseDate = ParseTimeStamp(releaseDateText);
+            var addedData = ParseTimeStamp(addedDataText);
+            
 
             gameData = new GameData(
                 Id: gameID,
@@ -519,11 +525,10 @@ public class Parser {
                 Authors: authors,
                 playtime: playtime,
                 HeroScreenshot: heroScreenshot,
-                OtherScreenshots: otherScreenshots,
-                new List<GameBuild> {
-                    build
-                }
+                OtherScreenshots: otherScreenshots
             );
+            
+            gameData.AddVersion(releaseDate, addedData, build);
 
             games[gameID] = gameData;
             errorMessage = "";
@@ -534,8 +539,13 @@ public class Parser {
             errorMessage = buildErrorMessage1;
             return false;
         }
+        
+        var releaseDateText1 = GetDataFromCell(line, ColumnType.ReleaseData);
+        var addedDataText1 = GetDataFromCell(line, ColumnType.DateAdded);
+        var releaseDate1 = ParseTimeStamp(releaseDateText1);
+        var addedData1 = ParseTimeStamp(addedDataText1);
 
-        gameData.Builds.Add(build1);
+        gameData.AddVersion(releaseDate1, addedData1, build1);
         errorMessage = "";
         return true;
     }

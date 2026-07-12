@@ -278,6 +278,8 @@ public record GameBuild(
 
 public record DownloadServer(DownloadServerType type, string url);
 
+public record GameVersion(TimeStamp ReleaseData, TimeStamp DataAdded, GameBuild? Build);
+
 public record GameData(
     uint Id,
     string Name,
@@ -287,47 +289,55 @@ public record GameData(
     string[] Authors,
     Tag playtime,
     Screenshot HeroScreenshot,
-    List<Screenshot> OtherScreenshots,
-    List<GameBuild?>? Builds) {
+    List<Screenshot> OtherScreenshots) {
+    
+    public List<GameVersion>? Versions { get; set; }
+    
+    public void AddVersion(TimeStamp releaseData, TimeStamp dataAdded, GameBuild? build) {
+        
+        if(Versions == null) {
+            Versions = new List<GameVersion>();
+        }
+        
+        Versions.Add(new GameVersion(releaseData, dataAdded, build));
+    }
     
     public TimeStamp GetReleaseData() {
-        if (Builds == null || Builds.Count == 0) {
+        if (Versions == null || Versions.Count == 0) {
             return new TimeStamp() { Format = TimeStamp.DateFormat.NoData };
         }
 
-        var firstReleaseBuild = Builds
-            .Where(b => b != null)
-            .OrderBy(b => {
+        var firstReleaseBuild = Versions
+            .OrderBy(v => {
                 
-                var isBuildInDevelopment = b.releaseStatus == Tag.In_Development;
+                var isBuildInDevelopment = v.Build?.releaseStatus == Tag.In_Development;
                 
                 // if build is release then it should count as lower in this list
                 
-                if(b.ReleaseDate.Format == TimeStamp.DateFormat.NoData) {
-                    return new DateTime();
+                if(v.ReleaseData.Format == TimeStamp.DateFormat.NoData) {
+                    return new DateTime(9999, 12, 31);
                 }
                 
-                return b.ReleaseDate.DateTime + (isBuildInDevelopment ? TimeSpan.FromDays(365 * 100) : TimeSpan.Zero);
+                return v.ReleaseData.DateTime + (isBuildInDevelopment ? TimeSpan.FromDays(365 * 100) : TimeSpan.Zero);
             })
             .FirstOrDefault();
         
         if(firstReleaseBuild == null)
             return new TimeStamp { Format = TimeStamp.DateFormat.NoData };
 
-        return firstReleaseBuild.ReleaseDate;
+        return firstReleaseBuild.ReleaseData;
     }
 
     public TimeStamp GetFirstAddedData() {
-        if (Builds == null || Builds.Count == 0) {
+        if (Versions == null || Versions.Count == 0) {
             return new TimeStamp() { Format = TimeStamp.DateFormat.NoData };
         }
         
-        var firstAddedBuild = Builds
-            .Where(b => b != null)
-            .OrderBy(b => b.DateAdded.DateTime)
+        var firstAddedVersion = Versions
+            .OrderBy(v => v.DataAdded.DateTime)
             .FirstOrDefault();
         
-        return firstAddedBuild?.DateAdded ?? new TimeStamp { Format = TimeStamp.DateFormat.NoData };
+        return firstAddedVersion?.DataAdded ?? new TimeStamp { Format = TimeStamp.DateFormat.NoData };
     }
 }
 
