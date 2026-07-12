@@ -58,6 +58,8 @@ public static class DBFormater {
                 return "pone.rs";
             case DownloadServerType.Scrogne:
                 return "Scrogne";
+            case DownloadServerType.Zana:
+                return "Zana (IPv6)";
             default:
                 throw new ArgumentOutOfRangeException(nameof(serverType), serverType, null);
         }
@@ -275,6 +277,19 @@ public static class DBFormater {
         }
     }
 
+    public static string FormatTimeStamp(TimeStamp stamp) {
+        switch (stamp.Format) {
+            case TimeStamp.DateFormat.YearOnly:
+                return stamp.DateTime.ToString("yyyy");
+            case TimeStamp.DateFormat.ddMMyyyy:
+                return stamp.DateTime.ToString("yyyy-MM-dd");   
+            case TimeStamp.DateFormat.NoData:       
+                return "";
+            default:
+                throw new ArgumentOutOfRangeException();
+        }
+    }
+
     public static SerializedGamesCollectionData FormatGames(Config cfg, GameData[] games) {
         var formatedGames = new GameSerializedData[games.Length];
 
@@ -289,6 +304,13 @@ public static class DBFormater {
     }
 
     private static GameSerializedData FormatGame(GameData game) {
+
+        var releaseTimeStamp = game.GetReleaseData();
+        var dateAddedTimeStamp = game.GetFirstAddedData();
+        
+        var releaseDate = FormatTimeStamp(releaseTimeStamp);
+        var dateAdded = FormatTimeStamp(dateAddedTimeStamp);
+        
         var gameData = new GameSerializedData {
             id = (int)game.Id,
             title = game.Name,
@@ -303,7 +325,8 @@ public static class DBFormater {
             engine = FormatEngine(game),
             platforms = FormatPlatforms(game),
             url = game.SourceURL,
-            dateAdded = game.ReleaseDate,
+            releaseDate = releaseDate,
+            dateAdded = dateAdded,
             downloads = FormatDownloads(game),
             screenshots = GetScreenshotsPaths(game.OtherScreenshots)
         };

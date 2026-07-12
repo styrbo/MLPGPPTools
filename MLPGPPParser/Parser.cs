@@ -1,4 +1,6 @@
-﻿namespace MLPGPPParser;
+﻿using System.Globalization;
+
+namespace MLPGPPParser;
 
 public class Parser {
 
@@ -13,6 +15,7 @@ public class Parser {
         DownloadServerTelegram = 4,
         DownloadServerMareBy = 5,
         DownloadServerScrogne = 25,
+        DownloadServerZana = 26,
         
         Status = 6,
         Engine = 7,
@@ -29,7 +32,7 @@ public class Parser {
         RecordTypeData = 19,
         Characters = 20,
         Playtime = 21,
-        LastUpdate = 22,
+        DateAdded = 22,
     }
 
     public enum RecordType {
@@ -331,6 +334,45 @@ public class Parser {
             .ToArray();
     }
 
+    private TimeStamp ParseTimeStamp(string text) {
+        if (IsCellHasContent(text) == false)
+            return new TimeStamp {
+                Format = TimeStamp.DateFormat.NoData,
+            };
+
+        text = text
+            .Replace(" ", "")
+            .Replace("?", "")
+            .Replace("\u200E", ""); // fuck google shit
+
+        if (DateTime.TryParseExact(text, "yyyy", null, DateTimeStyles.None, out var date)) {
+            
+            return new TimeStamp {
+                Format = TimeStamp.DateFormat.YearOnly,
+                DateTime = date,
+            };
+        }
+
+        string[] validFormats = [
+            "dd.MM.yyyy",
+            "dd.M.yyyy",
+            "d.MM.yyyy",
+            "d.M.yyyy",
+        ];
+
+        if (DateTime.TryParseExact(text, validFormats, null, DateTimeStyles.None, out var date2)) {
+            
+            return new TimeStamp {
+                Format = TimeStamp.DateFormat.ddMMyyyy,
+                DateTime = date2,
+            };
+        }
+        
+        return new TimeStamp {
+            Format = TimeStamp.DateFormat.NoData,
+        };
+    }
+
     public GameData[] ParseGames(IList<IList<object>> sheetData) {
         var games = new Dictionary<uint, GameData>();
 
@@ -405,8 +447,6 @@ public class Parser {
             var authorsLane = GetDataFromCell(line, ColumnType.Creator);
             var ageRestriction = GetDataFromCell(line, ColumnType.AgeRestriction);
 
-            var releaseData = GetDataFromCell(line, ColumnType.ReleaseData);
-
             var screenshotsBucketId = GetDataFromCell(line, ColumnType.ScreenshotsBucketId);
             
             var authors = ParseAuthors(authorsLane);
@@ -475,7 +515,6 @@ public class Parser {
                 Name: gameName,
                 Description: shortDescription,
                 Tags: new TagsCollection(tags),
-                ReleaseDate: releaseData,
                 SourceURL: sourceURL,
                 Authors: authors,
                 playtime: playtime,
@@ -504,7 +543,6 @@ public class Parser {
     private bool TryParseGameBuild(IList<object> line, out GameBuild? build, out string errorMessage) {
         var buildIdText = GetDataFromCell(line, ColumnType.ArchiveBuildId);
         var version = GetDataFromCell(line, ColumnType.Version);
-        var releaseDate = GetDataFromCell(line, ColumnType.ReleaseData);
         var platformText = GetDataFromCell(line, ColumnType.Platform);
 
         if (IsCellHasContent(buildIdText) == false ||
@@ -519,15 +557,23 @@ public class Parser {
             errorMessage = "no platform info";
             return false;
         }
+        
+        var releaseDateText = GetDataFromCell(line, ColumnType.ReleaseData);
+        var addedDataText = GetDataFromCell(line, ColumnType.DateAdded);
+        var releaseDate = ParseTimeStamp(releaseDateText);
+        var addedData = ParseTimeStamp(addedDataText);
+        var devStatusTagText = GetDataFromCell(line, ColumnType.Status);
+        var devStatusTag = GetDevelopmentStatusTag(devStatusTagText);
 
         var platform = GetTag(platformText, ColumnType.Platform);
         
         var downloadServers = new List<DownloadServer>();
         TryAddDownloadServer(line, ColumnType.DownloadServerScrogne, DownloadServerType.Scrogne, downloadServers);
         TryAddDownloadServer(line, ColumnType.DownloadServerTelegram, DownloadServerType.Telegram, downloadServers);
+        //TryAddDownloadServer(line, ColumnType.DownloadServerZana, DownloadServerType.Zana, downloadServers);
         TryAddDownloadServer(line, ColumnType.DownloadServerMareBy, DownloadServerType.MareBy, downloadServers);
 
-        build = new GameBuild(buildId, version, releaseDate, platform, downloadServers.ToArray());
+        build = new GameBuild(buildId, version, releaseDate, addedData, devStatusTag, platform, downloadServers.ToArray());
         errorMessage = "";
         return true;
     }
