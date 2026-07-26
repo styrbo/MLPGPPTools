@@ -3,8 +3,6 @@
 namespace MLPGPPParser;
 
 public class Parser {
-
-    public const string UnknownSourceURL = "https://games.mare.by/-67";
     
     public enum ColumnType : int {
         Id = 0,
@@ -168,10 +166,19 @@ public class Parser {
                 return Tag.coop;
             case "online":
                 return Tag.online;
+            case "g1-g3":
+                return Tag.FromG1ToG3;
+            case "g4":
+                return Tag.G4;
+            case "g5":
+                return Tag.G5;
+
             case "released":
                 return Tag.Released;
             case "indevelopment":
                 return Tag.In_Development;
+            
+            
             case "custom/none":
                 return Tag.customORnone;
             case "unity":
@@ -206,7 +213,13 @@ public class Parser {
                 return Tag.ClickteamFusion;
             case "gdevelop":
                 return Tag.GDevelop; 
-            
+            case "doom":
+                return Tag.DOOM;
+            case "scratch":
+                return Tag.Scratch;
+            case "appgamekitstudio":
+                return Tag.AppGameKit_Studio;
+
             case "m6":
                 return Tag.M6;
             case "cmc":
@@ -277,6 +290,8 @@ public class Parser {
                 return Tag.Human;
             case "ponyinspired":
                 return Tag.Pony_Inspired;
+            case "ai":
+                return Tag.AI;
 
             default:
                 return Tag.None;
@@ -500,12 +515,6 @@ public class Parser {
                 return false;
             }
 
-            var sourceURL = GetDataFromCell(line, ColumnType.Source);
-            if(IsCellHasContent(sourceURL) == false) {
-                ConsoleDrawer.DrawWarning($"row {lineIndex} has no source url, using 404 page");
-                sourceURL = UnknownSourceURL;
-            }
-
             if (tags.Contains(Tag.None)) {
                 ConsoleDrawer.DrawWarning($"row {lineIndex} has no tags");
             }
@@ -515,20 +524,21 @@ public class Parser {
             var releaseDate = ParseTimeStamp(releaseDateText);
             var addedData = ParseTimeStamp(addedDataText);
             
+            var sourceURL = GetDataFromCell(line, ColumnType.Source);
+            
 
             gameData = new GameData(
                 Id: gameID,
                 Name: gameName,
                 Description: shortDescription,
                 Tags: new TagsCollection(tags),
-                SourceURL: sourceURL,
                 Authors: authors,
                 playtime: playtime,
                 HeroScreenshot: heroScreenshot,
                 OtherScreenshots: otherScreenshots
             );
             
-            gameData.AddVersion(releaseDate, addedData, build);
+            gameData.AddVersion(releaseDate, addedData, sourceURL, build);
 
             games[gameID] = gameData;
             errorMessage = "";
@@ -544,8 +554,9 @@ public class Parser {
         var addedDataText1 = GetDataFromCell(line, ColumnType.DateAdded);
         var releaseDate1 = ParseTimeStamp(releaseDateText1);
         var addedData1 = ParseTimeStamp(addedDataText1);
+        var sourceURL1 = GetDataFromCell(line, ColumnType.Source);
 
-        gameData.AddVersion(releaseDate1, addedData1, build1);
+        gameData.AddVersion(releaseDate1, addedData1, sourceURL1, build1);
         errorMessage = "";
         return true;
     }

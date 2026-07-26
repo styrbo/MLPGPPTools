@@ -82,10 +82,12 @@ ConsoleDrawer.DrawText("Saving Json");
 
 File.WriteAllText(config.gamesJsonPath, json);
 
+/* // no more screenshots moving
 ConsoleDrawer.DrawText("Moving Screenshots");
 
 ConsoleDrawer.RunTask(Task.Run(() => screenshotCollection.Apply(config.siteLocalPath, games)));
 
 ConsoleDrawer.DrawText("Done!");
+*/ 
 
 return 0;

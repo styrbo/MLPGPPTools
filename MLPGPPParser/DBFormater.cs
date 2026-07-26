@@ -153,6 +153,12 @@ public static class DBFormater {
                 return "Co-Op";
             case Tag.online:
                 return "Online";
+            case Tag.FromG1ToG3:
+                return "G1-G3";
+            case Tag.G4:
+                return "G4";
+            case Tag.G5:
+                return "G5";
             //Status         
             case Tag.Released:
                 return "Released";
@@ -197,6 +203,12 @@ public static class DBFormater {
                 return "Clickteam Fusion";
             case Tag.GDevelop:
                 return "GDevelop";
+            case Tag.DOOM:
+                return "DOOM Engine";
+            case Tag.Scratch:
+                return "Scratch";
+            case Tag.AppGameKit_Studio:
+                return "AppGameKit Studio";
 
             // Character
             case Tag.M6:
@@ -271,6 +283,8 @@ public static class DBFormater {
                 return "Human";
             case Tag.Pony_Inspired:
                 return "Pony Inspired";
+            case Tag.AI:
+                return "Gen AI";
 
             default:
                 throw new ArgumentOutOfRangeException(nameof(tag), tag, null);
@@ -324,7 +338,7 @@ public static class DBFormater {
             status = FormatStatus(game),
             engine = FormatEngine(game),
             platforms = FormatPlatforms(game),
-            url = game.SourceURL,
+            url = game.GetFirstValidSourceURL(),
             releaseDate = releaseDate,
             dateAdded = dateAdded,
             downloads = FormatDownloads(game),

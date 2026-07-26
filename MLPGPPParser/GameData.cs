@@ -61,6 +61,9 @@ public enum Tag {
     official,
     coop,
     online,
+    FromG1ToG3,
+    G4,
+    G5,
 
     //Status
     Released,
@@ -86,6 +89,9 @@ public enum Tag {
     LoveEngine,
     ClickteamFusion,
     GDevelop,
+    DOOM,
+    Scratch,
+    AppGameKit_Studio,
 
     //Character
     M6,
@@ -131,6 +137,7 @@ public enum Tag {
     Human,
     Anthro,
     Pony_Inspired,
+    AI,
 }
 
 public enum DownloadServerType {
@@ -204,6 +211,9 @@ public class TagsCollection {
             case Tag.official: return Label.Tags;
             case Tag.coop: return Label.Tags;
             case Tag.online: return Label.Tags;
+            case Tag.FromG1ToG3: return Label.Tags;
+            case Tag.G4: return Label.Tags;
+            case Tag.G5: return Label.Tags;
 
             case Tag.Released: return Label.Status;
             case Tag.In_Development: return Label.Status;
@@ -227,6 +237,9 @@ public class TagsCollection {
             case Tag.LoveEngine: return Label.Engine;
             case Tag.ClickteamFusion: return Label.Engine;
             case Tag.GDevelop: return Label.Engine;
+            case Tag.DOOM: return Label.Engine;
+            case Tag.Scratch: return Label.Engine;
+            case Tag.AppGameKit_Studio: return Label.Engine;
 
             case Tag.M6: return Label.Character;
             case Tag.CMC: return Label.Character;
@@ -248,6 +261,7 @@ public class TagsCollection {
             case Tag.Anthro: return Label.BlackTags;
             case Tag.Human: return Label.BlackTags;
             case Tag.Pony_Inspired: return Label.BlackTags;
+            case Tag.AI: return Label.BlackTags;
 
             default: throw new Exception($"can't find label for {tag}");
         }
@@ -278,28 +292,57 @@ public record GameBuild(
 
 public record DownloadServer(DownloadServerType type, string url);
 
-public record GameVersion(TimeStamp ReleaseData, TimeStamp DataAdded, GameBuild? Build);
+public record GameVersion(TimeStamp ReleaseData, TimeStamp DataAdded, string SourceURL, GameBuild? Build);
 
 public record GameData(
     uint Id,
     string Name,
     string Description,
     TagsCollection Tags,
-    string SourceURL,
     string[] Authors,
     Tag playtime,
     Screenshot HeroScreenshot,
     List<Screenshot> OtherScreenshots) {
     
+    public const string UnknownSourceURL = "https://games.mare.by/notfound";
+    
     public List<GameVersion>? Versions { get; set; }
     
-    public void AddVersion(TimeStamp releaseData, TimeStamp dataAdded, GameBuild? build) {
+    public void AddVersion(TimeStamp releaseData, TimeStamp dataAdded, string SourceURL, GameBuild? build) {
         
         if(Versions == null) {
             Versions = new List<GameVersion>();
         }
         
-        Versions.Add(new GameVersion(releaseData, dataAdded, build));
+        Versions.Add(new GameVersion(releaseData, dataAdded, SourceURL, build));
+    }
+
+
+    public string GetFirstValidSourceURL() {
+        if (Versions == null || Versions.Count == 0) {
+            return "";
+        }
+
+        var version = Versions.OrderBy(v => {
+            if (IsURLValid(v.SourceURL) == false) {
+                return int.MaxValue;
+            }
+
+            return 0;
+        }).FirstOrDefault();
+
+        if (IsURLValid(version.SourceURL) == false) {
+            return UnknownSourceURL;
+        } else {
+            return version.SourceURL;
+        }
+        
+        bool IsURLValid(string url) {
+            if (string.IsNullOrWhiteSpace(url) || url == "~" || url == "?")
+                return false;
+            
+            return true;
+        }
     }
     
     public TimeStamp GetReleaseData() {
