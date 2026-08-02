@@ -1,6 +1,6 @@
 ﻿using System.Globalization;
 
-namespace MLPGPPParser;
+namespace MLPGPPParser.Parser;
 
 public class Parser {
     

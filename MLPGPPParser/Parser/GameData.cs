@@ -1,4 +1,4 @@
-﻿namespace MLPGPPParser;
+﻿namespace MLPGPPParser.Parser;
 
 public enum Label {
     Genre,

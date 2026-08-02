@@ -1,5 +1,5 @@
 ﻿
-namespace MLPGPPParser;
+namespace MLPGPPParser.Parser;
 
 public class ScreenshotsCollection {
 

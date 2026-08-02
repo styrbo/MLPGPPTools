@@ -4,90 +4,17 @@ using System.Text.Json;
 using Google.Apis.Sheets.v4;
 using Google.Apis.Sheets.v4.Data;
 using MLPGPPParser;
+using MLPGPPParser.Parser;
 
-/*
-Console.WriteLine("Hello, World!");
-
-var path = @"O:\MLGPP\s1";
-var emptyDirsCount = 1000;
-for (int i = 0; i < emptyDirsCount; i++) {
-    var dir = $"{path}\\{i}";
-    if (Directory.Exists(dir)) continue;
-        Directory.CreateDirectory(dir);
-}
-*/
-
-
-var configPath = $@"{Environment.CurrentDirectory}\Resources\config.json";
-
-ConsoleDrawer.DrawText("Loading config...");
-if (File.Exists(configPath) == false) {
-    CreateEmptyConfig();
-    return ConsoleDrawer.DrawError("Config file not found,  created new one");
-}
-
-var configJson = File.ReadAllText(configPath);
-var config = JsonSerializer.Deserialize<Config>(configJson);
-if (config == null) {
-    CreateEmptyConfig();
-    return ConsoleDrawer.DrawError("Config file is invalid, created new one");
-}
-
-void CreateEmptyConfig() {
-    var newConfig = new Config(
-        "idk",
-        "idk",
-        "source!A3:X",
-        "O:/MLGPP/s",
-        "O:/MLGPP/Pony.Games//data/games.json",
-        @"O:\MLGPP\Pony.Games");
-    
-    var newConfigJson = JsonSerializer.Serialize(newConfig);
-    Directory.CreateDirectory(configPath.Substring(0, configPath.LastIndexOf('\\'))); // (Resources\config.json)
-    File.WriteAllText(configPath, newConfigJson);
-}
-
-
-var initializer = new SheetsService.Initializer();
-initializer.ApiKey = config.APIToken;
-
-var api = new SheetsService(initializer);
-
-var request = api.Spreadsheets.Values.Get(config.sheetID, config.dataRange);
-
-ConsoleDrawer.DrawText("Loading screenshots data...");
-var screenshotCollection = ConsoleDrawer.RunTask(Task.Run(() => ScreenshotsCollection.LoadCollection(config.localScreenshotsDBPath)));
-
-ConsoleDrawer.DrawText("Loading sheet data...");
-var sheetData = ConsoleDrawer.RunTask(request.ExecuteAsync());
-
-ConsoleDrawer.DrawText("Parsing data...");
-var parser = new Parser(screenshotCollection);
-
-var games = ConsoleDrawer.RunTask(Task.Run(() => parser.ParseGames(sheetData.Values)));
-
-ConsoleDrawer.DrawText($"parsed {games.Length} games");
-
-ConsoleDrawer.DrawText("Generating Json");
-
-var formatedGames = DBFormater.FormatGames(config, games);
-
-var jsonOptions = new JsonSerializerOptions() {
-    IncludeFields = true,
-    WriteIndented = true,
+var runners = new List<ITaskRunner>
+{
+    new HashingRunner(),
 };
-var json = JsonSerializer.Serialize(formatedGames, jsonOptions);
 
-ConsoleDrawer.DrawText("Saving Json");
-
-File.WriteAllText(config.gamesJsonPath, json);
-
-/* // no more screenshots moving
-ConsoleDrawer.DrawText("Moving Screenshots");
-
-ConsoleDrawer.RunTask(Task.Run(() => screenshotCollection.Apply(config.siteLocalPath, games)));
-
-ConsoleDrawer.DrawText("Done!");
-*/ 
+if (args[0] == "run") {
+    var neededRunner = args[1];
+    
+    runners.FirstOrDefault(runner => runner.TaskName == neededRunner)?.Run(args.Skip(2).ToArray());
+}
 
 return 0;

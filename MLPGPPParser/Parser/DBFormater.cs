@@ -1,4 +1,4 @@
-﻿namespace MLPGPPParser;
+﻿namespace MLPGPPParser.Parser;
 
 public static class DBFormater {
     private const string ScreenshotsFolderLocalPath = @"/s/";
