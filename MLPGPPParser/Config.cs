@@ -7,4 +7,5 @@ public record Config(
     string dataRange,
     string localScreenshotsDBPath,
     string gamesJsonPath,
-    string siteLocalPath);
+    string siteLocalPath,
+    string logFolderPath);

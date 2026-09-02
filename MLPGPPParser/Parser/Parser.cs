@@ -395,11 +395,11 @@ public class Parser {
             var row = sheetData[index];
 
             if (TryParseLine(games, row, index, out var errorMessage) == false) {
-                ConsoleDrawer.DrawError($"can't parse row {index} {errorMessage}");
+                Logger.LogError($"can't parse row {index} {errorMessage}");
 
                 continue;
             } else {
-                //ConsoleDrawer.DrawText($"parsed row {index}");
+                //Logger.LogInfo($"parsed row {index}");
             }
         }
 
@@ -482,7 +482,7 @@ public class Parser {
                 var characters = GetTags(characterData);
                 tags = tags.Concat(characters);
             } else {
-                ConsoleDrawer.DrawWarning($"row {lineIndex} has no characters");
+                Logger.LogWarning($"row {lineIndex} has no characters");
             }
 
             var playtime = Tag.None;
@@ -490,14 +490,14 @@ public class Parser {
                 playtime = GetTag(playtimeData, ColumnType.Playtime);
                 tags = tags.Append(playtime);
             } else {
-                ConsoleDrawer.DrawWarning($"row {lineIndex} has no playtime");
+                Logger.LogWarning($"row {lineIndex} has no playtime");
             }
 
             var ageRestrictionTag = Tag.None;
             if(IsCellHasContent(ageRestriction)) {
                 ageRestrictionTag = GetTag(ageRestriction, ColumnType.AgeRestriction);
             } else {
-                ConsoleDrawer.DrawWarning($"row {lineIndex} has no age restriction, using NSFW");
+                Logger.LogWarning($"row {lineIndex} has no age restriction, using NSFW");
                 ageRestrictionTag = Tag.NSFW;
             }
             tags = tags.Append(ageRestrictionTag);
@@ -516,7 +516,7 @@ public class Parser {
             }
 
             if (tags.Contains(Tag.None)) {
-                ConsoleDrawer.DrawWarning($"row {lineIndex} has no tags");
+                Logger.LogWarning($"row {lineIndex} has no tags");
             }
             
             var releaseDateText = GetDataFromCell(line, ColumnType.ReleaseData);

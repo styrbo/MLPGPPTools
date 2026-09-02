@@ -4,16 +4,17 @@ public class FoldersManagerRunner : ITaskRunner {
 
     public string TaskName => "folders";
 
-    public int Run(string[] args) {
-        Console.WriteLine("Hello, World!");
+    public Task<int> Run(string[] args) {
+        Logger.LogInfo("Creating folder structure...");
 
-        var path = @"O:\MLGPP\g";
+        var path = @"O:\MLGPP\Pony.Games\s";
         var emptyDirsCount = 10000;
         for (int i = 0; i < emptyDirsCount; i++) {
             var dir = $"{path}\\{i}";
             if (Directory.Exists(dir)) continue;
             Directory.CreateDirectory(dir);
         }
-        return 0;
+        Logger.LogInfo("Folder structure created successfully");
+        return Task.FromResult(0);
     }
 }

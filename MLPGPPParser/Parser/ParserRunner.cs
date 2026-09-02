@@ -7,20 +7,22 @@ public class ParserRunner : ITaskRunner {
 
     public string TaskName => "parser";
 
-    public int Run(string[] args) {
+    public async Task<int> Run(string[] args) {
         var configPath = $@"{Environment.CurrentDirectory}\Resources\config.json";
 
-        ConsoleDrawer.DrawText("Loading config...");
+        Logger.LogInfo("Loading config...");
         if (File.Exists(configPath) == false) {
             CreateEmptyConfig();
-            return ConsoleDrawer.DrawError("Config file not found,  created new one");
+            Logger.LogError("Config file not found,  created new one");
+            return -1;
         }
 
-        var configJson = File.ReadAllText(configPath);
+        var configJson = await File.ReadAllTextAsync(configPath);
         var config = JsonSerializer.Deserialize<Config>(configJson);
         if (config == null) {
             CreateEmptyConfig();
-            return ConsoleDrawer.DrawError("Config file is invalid, created new one");
+            Logger.LogError("Config file is invalid, created new one");
+            return -1;
         }
 
         void CreateEmptyConfig() {
@@ -30,7 +32,8 @@ public class ParserRunner : ITaskRunner {
                 "source!A3:X",
                 "O:/MLGPP/s",
                 "O:/MLGPP/Pony.Games//data/games.json",
-                @"O:\MLGPP\Pony.Games");
+                @"O:\MLGPP\Pony.Games",
+                @"O:\MLGPP\logs");
 
             var newConfigJson = JsonSerializer.Serialize(newConfig);
             Directory.CreateDirectory(configPath.Substring(0, configPath.LastIndexOf('\\'))); // (Resources\config.json)
@@ -45,21 +48,23 @@ public class ParserRunner : ITaskRunner {
 
         var request = api.Spreadsheets.Values.Get(config.sheetID, config.dataRange);
 
-        ConsoleDrawer.DrawText("Loading screenshots data...");
+        Logger.LogInfo("Loading screenshots data...");
         var screenshotCollection =
             ConsoleDrawer.RunTask(Task.Run(() => ScreenshotsCollection.LoadCollection(config.localScreenshotsDBPath)));
 
-        ConsoleDrawer.DrawText("Loading sheet data...");
+        Logger.LogInfo("Loading sheet data...");
         var sheetData = ConsoleDrawer.RunTask(request.ExecuteAsync());
 
-        ConsoleDrawer.DrawText("Parsing data...");
+        Logger.LogInfo("Parsing data...");
         var parser = new Parser(screenshotCollection);
 
-        var games = ConsoleDrawer.RunTask(Task.Run(() => parser.ParseGames(sheetData.Values)));
+        var task = Task.Run(() => parser.ParseGames(sheetData.Values));
+        var games = ConsoleDrawer.RunTask(task);
+        await task;
 
-        ConsoleDrawer.DrawText($"parsed {games.Length} games");
+        Logger.LogInfo($"parsed {games.Length} games");
 
-        ConsoleDrawer.DrawText("Generating Json");
+        Logger.LogInfo("Generating Json");
 
         var formatedGames = DBFormater.FormatGames(config, games);
 
@@ -69,16 +74,16 @@ public class ParserRunner : ITaskRunner {
         };
         var json = JsonSerializer.Serialize(formatedGames, jsonOptions);
 
-        ConsoleDrawer.DrawText("Saving Json");
+        Logger.LogInfo("Saving Json");
 
-        File.WriteAllText(config.gamesJsonPath, json);
+        await File.WriteAllTextAsync(config.gamesJsonPath, json);
 
 /* // no more screenshots moving
-ConsoleDrawer.DrawText("Moving Screenshots");
+Logger.LogInfo("Moving Screenshots");
 
 ConsoleDrawer.RunTask(Task.Run(() => screenshotCollection.Apply(config.siteLocalPath, games)));
 
-ConsoleDrawer.DrawText("Done!");
+Logger.LogInfo("Done!");
 */
 
         return 0;

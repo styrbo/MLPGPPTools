@@ -4,5 +4,5 @@ public interface ITaskRunner {
     
     string TaskName { get; }
     
-    int Run(string[] args);
+    Task<int> Run(string[] args);
 }

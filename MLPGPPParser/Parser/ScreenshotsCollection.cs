@@ -109,10 +109,16 @@ public class ScreenshotsCollection {
                 .Order()
                 .ToArray();
 
-            if (screenshots.Length == 0)
-                break;
+            if (screenshots.Length == 0) {
+                items.Add(new ScreenshotBucketData(0, []));
+                currentBucketID++;
+                continue;
+            }
+
             if (screenshots[0].Item1 != 0) {
                 ConsoleDrawer.DrawError($"screenshots id's not correct for: {folderPath}");
+                items.Add(new ScreenshotBucketData(0, []));
+                currentBucketID++;
                 continue;
             }
             

@@ -19,6 +19,7 @@ public static class ConsoleDrawer {
         Console.ForegroundColor = ConsoleColor.Green;
         Console.WriteLine(text);
         Console.ResetColor();
+        
     }
 
     public static bool AskPermissionToContinue(string message) {
@@ -40,11 +41,8 @@ public static class ConsoleDrawer {
     private static TimeSpan _messagesDelay = TimeSpan.FromMilliseconds(500);
     private static TimeSpan _timeout = TimeSpan.FromSeconds(300); // 5 minutes
 
-    public static void RunTask(Task task, string startMessage = "Start Task", TimeSpan? overrideTimeoutTime = null) {
-        Console.ForegroundColor = ConsoleColor.White;
-        Console.WriteLine(startMessage);
-
-        Console.ForegroundColor = ConsoleColor.Blue;
+    public static void RunTask(Task task, string startMessage = "Start Task", TimeSpan? overrideTimeoutTime = null, bool isLogProgress = true) {
+        Logger.LogTaskStart(startMessage);
 
         var nextMessageTime = _messagesDelay;
         var stopWatch = Stopwatch.StartNew();
@@ -52,8 +50,8 @@ public static class ConsoleDrawer {
         task.WaitAsync(overrideTimeoutTime ?? _timeout);
 
         while (task.IsCompleted == false) {
-            if (stopWatch.Elapsed > nextMessageTime) {
-                Console.Write($"\rExecuting task for {stopWatch.Elapsed:g} time");
+            if (isLogProgress && stopWatch.Elapsed > nextMessageTime) {
+                Logger.LogTaskProgress(stopWatch.Elapsed);
                 nextMessageTime += _messagesDelay;
             }
         }
@@ -61,12 +59,11 @@ public static class ConsoleDrawer {
         stopWatch.Stop();
 
         if (task.IsFaulted) {
-            DrawError(task.Exception.Message);
+            Logger.LogError(task.Exception.Message);
             throw task.Exception;
         }
 
-        Console.ForegroundColor = ConsoleColor.Green;
-        Console.WriteLine($"\rExecuted task for {stopWatch.Elapsed:g} time ");
+        Logger.LogTaskComplete(stopWatch.Elapsed);
     }
 
     public static T RunTask<T>(
