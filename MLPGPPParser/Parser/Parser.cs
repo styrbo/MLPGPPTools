@@ -12,8 +12,9 @@ public class Parser {
         
         DownloadServerTelegram = 4,
         DownloadServerMareBy = 5,
-        DownloadServerScrogne = 25,
-        DownloadServerZana = 26,
+        DownloadServerScrogne = 27,
+        DownloadServerZana = 28,
+        DownloadServerAlethila = 29,
         
         Status = 6,
         Engine = 7,
@@ -593,6 +594,7 @@ public class Parser {
         TryAddDownloadServer(line, ColumnType.DownloadServerTelegram, DownloadServerType.Telegram, downloadServers);
         //TryAddDownloadServer(line, ColumnType.DownloadServerZana, DownloadServerType.Zana, downloadServers);
         TryAddDownloadServer(line, ColumnType.DownloadServerMareBy, DownloadServerType.MareBy, downloadServers);
+        TryAddDownloadServer(line, ColumnType.DownloadServerAlethila, DownloadServerType.Alethila, downloadServers);
 
         build = new GameBuild(buildId, version, releaseDate, addedData, devStatusTag, platform, downloadServers.ToArray());
         errorMessage = "";

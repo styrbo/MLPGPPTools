@@ -15,6 +15,8 @@ Logger.Initialize(@"O:\MLGPP\logs");
 
 //return 0;
 
+//help d
+
 var runners = new List<ITaskRunner>
 {
     new HashingRunner(),

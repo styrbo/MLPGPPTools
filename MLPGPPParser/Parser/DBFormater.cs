@@ -60,6 +60,8 @@ public static class DBFormater {
                 return "Scrogne";
             case DownloadServerType.Zana:
                 return "Zana (IPv6)";
+            case DownloadServerType.Alethila:
+                return "Autumn";
             default:
                 throw new ArgumentOutOfRangeException(nameof(serverType), serverType, null);
         }

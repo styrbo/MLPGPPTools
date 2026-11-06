@@ -147,6 +147,7 @@ public enum DownloadServerType {
     Zana,
     Telegram,
     PoneRs,
+    Alethila, //windows logic hosting
 }
 
 public class TagsCollection {
