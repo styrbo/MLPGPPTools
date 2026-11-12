@@ -13,22 +13,33 @@ public class HashingRunner : ITaskRunner {
         var mode = args[0];
 
         if (mode == "calc") {
-            var path = args.Length > 1 && args[1] != "base" ? args[1] : null;
+            var path = GlobalOptions.ResolveGamesFolder(args.Length > 1 && args[1] != "base" ? args[1] : null);
+            if (path == null)
+                return -1;
+
             var isForceRecalc = args.Length > 2 && args[2] == "-f";
-            
+
             var task = HashFileCreator.CalculateHashes(path, isForceRecalc);
             ConsoleDrawer.RunTask(task);
             await task;
-            
+
         }
         else if (mode == "find") {
-            await Find(args.Length > 1 ? args[1] : throw new ArgumentException("no file to check"));
+            var gamesPath = GlobalOptions.ResolveGamesFolder();
+            if (gamesPath == null)
+                return -1;
+
+            await Find(args.Length > 1 ? args[1] : throw new ArgumentException("no file to check"), gamesPath);
         }
         else if (mode == "find_all") {
-            
+
         }
         else if (mode == "coll") {
-            var task = Task.Run(FindCollisions);
+            var gamesPath = GlobalOptions.ResolveGamesFolder();
+            if (gamesPath == null)
+                return -1;
+
+            var task = Task.Run(() => FindCollisions(gamesPath));
             ConsoleDrawer.RunTask(task, isLogProgress:false);
             await task;
         }
@@ -36,9 +47,9 @@ public class HashingRunner : ITaskRunner {
         return -1;
     }
 
-    private async Task<HashFile[]> LoadHashes() {
+    private async Task<HashFile[]> LoadHashes(string gamesPath) {
         var hashesTasks = Directory
-            .GetDirectories(@"O:\MLGPP\g\")
+            .GetDirectories(gamesPath)
             .SelectMany(dir => Directory.GetFiles(dir, "*.hash"))
             .Select(HashFile.LoadHashFile);
         
@@ -47,11 +58,11 @@ public class HashingRunner : ITaskRunner {
         return hashes;
     }
 
-    private async Task Find(string pathToCheck) {
-        
+    private async Task Find(string pathToCheck, string gamesPath) {
+
         Logger.LogInfo("Loading Hashes DB");
-        
-        var hashes = await LoadHashes();
+
+        var hashes = await LoadHashes(gamesPath);
 
         Logger.LogInfo("Finding collision...");
 
@@ -98,9 +109,9 @@ public class HashingRunner : ITaskRunner {
         }
     }
 
-    private async Task FindCollisions() {
+    private async Task FindCollisions(string gamesPath) {
         Logger.LogInfo("Loading Hashes DB");
-        var hashes = await LoadHashes();
+        var hashes = await LoadHashes(gamesPath);
         Logger.LogInfo("Finding collisions...");
 
         var foundedCollisions = new List<(HashFile, HashFile)>();

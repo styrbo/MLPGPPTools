@@ -14,17 +14,19 @@ This document describes **everything the current code does**, including its quir
 1. [Requirements](#requirements)
 2. [Building and running](#building-and-running)
 3. [Command input modes](#command-input-modes)
-4. [Quick reference](#quick-reference)
-5. [Task: `hash`](#task-hash)
-6. [Task: `parser`](#task-parser)
-7. [Hash file format](#hash-file-format)
-8. [Config file](#config-file)
-9. [Hard-coded paths](#hard-coded-paths)
-10. [Logging](#logging)
-11. [Inactive code (not reachable from the CLI)](#inactive-code-not-reachable-from-the-cli)
-12. [Bugs](#bugs)
-13. [Quoting tips for Windows](#quoting-tips-for-windows)
-14. [Cheat sheet](#cheat-sheet)
+4. [Global options](#global-options)
+5. [Quick reference](#quick-reference)
+6. [Task: `hash`](#task-hash)
+7. [Task: `data`](#task-data)
+8. [Task: `parser`](#task-parser)
+9. [Hash file format](#hash-file-format)
+10. [Config file](#config-file)
+11. [Hard-coded paths](#hard-coded-paths)
+12. [Logging](#logging)
+13. [Inactive code (not reachable from the CLI)](#inactive-code-not-reachable-from-the-cli)
+14. [Bugs](#bugs)
+15. [Quoting tips for Windows](#quoting-tips-for-windows)
+16. [Cheat sheet](#cheat-sheet)
 
 ---
 
@@ -98,6 +100,37 @@ hash calc base -f
 - The first argument after `run` (or the first word of the line) is matched against the registered task names: `hash`, `parser`.
 - If no task matches, **nothing is printed** and the program exits with code `0`.
 - The task receives the remaining words as its arguments.
+- Registered task names: `hash`, `data`, `parser`.
+
+---
+
+## Global options
+
+Global options can be used with **any** command. They can appear anywhere on the line (before or after the task name). They are removed before the task sees its arguments.
+
+| Option | Meaning |
+|---|---|
+| `--g_path="<path>"` | Use this folder as the games folder instead of the default `O:\MLGPP\g\` |
+| `--g_path=<path>` | Same, without quotes (use when the path has no spaces) |
+| `--g_path <path>` | Same, as two separate words |
+
+Examples:
+
+```text
+run hash calc --g_path="D:\games"
+run hash find "C:\Downloads\game.exe" --g_path="D:\games"
+run data pack --g_path="D:\games"
+--g_path="D:\games" run hash coll
+```
+
+Rules:
+
+- The games folder is chosen in this order: an explicit positional path (for example `run hash calc "D:\games"`) → `--g_path` → the default `O:\MLGPP\g\`. Writing `base` as the positional path means "no explicit path".
+- `--g_path` is used by `hash calc`, `hash find`, `hash coll` and `data`. `parser` does not use the games folder, so the option has no effect on it.
+- If the folder does not exist, the command logs `Games folder not found` and stops.
+- `--g_path` with no value, or an empty value, logs an error and nothing runs.
+- If the option is given twice, the last one wins.
+- A trailing backslash is fine (`--g_path="D:\games\"`). Stray quotes caused by Windows argument parsing are removed automatically.
 
 ---
 
@@ -106,9 +139,11 @@ hash calc base -f
 | Command | What it does | Status |
 |---|---|---|
 | `hash calc [path\|base] [-f]` | Create `.<id>.in.hash` files for numbered game folders | Working (see [Bugs](#bugs)) |
-| `hash find <file-or-folder>` | Compare files against all stored hash files | Working (uses fixed games folder) |
-| `hash coll` | Report game folders whose stored hashes are identical | Working (uses fixed games folder) |
+| `hash find <file-or-folder>` | Compare files against all stored hash files | Working (uses games folder) |
+| `hash coll` | Report game folders whose stored hashes are identical | Working (uses games folder) |
 | `hash find_all` | Placeholder, does nothing | Stub |
+| `data pack [path\|base]` | Pack each game's content into one zip | Working |
+| `data unpack [path\|base]` | Extract each game's zip back into its folder | Working |
 | `parser` | Read Google Sheet, build games JSON database | Working (needs valid config) |
 | `help` | Would show help | **Not registered**, does nothing |
 | `folders` | Creates 10 000 empty folders in a hard-coded path | **Not registered**, cannot be run |
@@ -129,7 +164,7 @@ Creates a hash file inside every numbered game folder in the games folder.
 
 | Part | Meaning |
 |---|---|
-| `path` | Games folder to scan. Omit it, or write `base`, to use the default `O:\MLGPP\g\`. |
+| `path` | Games folder to scan. Omit it, or write `base`, to use `--g_path` or the default `O:\MLGPP\g\`. |
 | `-f` | Force recalculation: delete existing `.<id>.in.hash` files and create them again. **Must be the 3rd word** (after `path`/`base`). |
 
 Examples:
@@ -166,7 +201,7 @@ Output lines: `Hashed File: <id> name <filename>` for each new hash.
 Checks one file, or every file under a folder (recursively), against all stored hash files.
 
 - Required argument. Without it the program crashes with an unhandled `ArgumentException` (see [Bugs](#bugs)).
-- Loads every `*.hash` file found one level below the fixed games folder `O:\MLGPP\g\` (see [Hard-coded paths](#hard-coded-paths)).
+- Loads every `*.hash` file found one level below the games folder (`--g_path`, or the default `O:\MLGPP\g\`; see [Global options](#global-options)).
 - For each file, computes its full MD5 and compares it with each stored hash.
 - Prints the list of matches at the end:
   - `✅ <file> (<md5>) == <hash file path> (<md5>)` if a stored hash matches (the first match is used);
@@ -184,13 +219,79 @@ run hash find "C:\Downloads\unpacked_game"
 
 Looks for **collisions between game folders**: two different stored hash files with the same MD5.
 
-- Uses the fixed games folder `O:\MLGPP\g\`.
+- Uses the games folder (`--g_path`, or the default `O:\MLGPP\g\`).
 - Prints `Collision found between <pathA> and <pathB>` for each pair, then a summary.
 - If none is found, prints `No collisions found!` as an error line.
 
 ### `hash find_all`
 
 Recognised but empty. It does nothing and prints nothing.
+
+---
+
+## Task: `data`
+
+Entry: `run data <mode> [path|base]`
+
+| Mode | What it does |
+|---|---|
+| `pack` | Packs the content of every numbered game folder into one zip |
+| `unpack` | Extracts the zip in every numbered game folder back into that folder |
+
+- `path` is the games folder. Omit it, or write `base`, to use `--g_path` or the default `O:\MLGPP\g\`.
+- Only folders whose names are unsigned integers are processed, the same as `hash calc`.
+- Any other mode prints `unknown data mode` and does nothing.
+
+Examples:
+
+```text
+run data pack                      -> default folder
+run data pack base                 -> default folder
+run data pack "O:\MLGPP\other"     -> custom folder
+run data unpack "O:\MLGPP\other"   -> custom folder
+```
+
+### `data pack`
+
+For each game folder `<id>`:
+
+1. **Find the content root.** Starting at `<id>`, descend while the folder has no files (`.hash` files don't count) and exactly one subfolder. The first folder that doesn't match is the content root. This removes pointless wrapper folders.
+2. **Decide whether to pack.** Count the files under the content root, excluding `.hash` files. Pack only if there are **more than one**. A single-file game is left alone.
+3. **Skip with a warning** if `<id>` already contains a `.zip`, if the zip name is already taken, or if a `.hash` file sits inside a subfolder of the content root.
+4. **Create the zip** `<id>\<content root name>.zip`. It holds the content root's files and empty subfolders, with paths relative to the content root.
+5. **Verify the zip.** It must contain the same files (same sizes) and the same empty folders. If not, the zip is deleted, the originals are kept, and an error is logged.
+6. **Delete the originals**: the packed files, the subfolders of the content root, and the wrapper folders between `<id>` and the content root. `<id>` itself is never deleted.
+
+`.hash` files are never packed and never moved. They stay in `<id>\`.
+
+Example, from a nested layout:
+
+```text
+Before                                      After
+11\                                         11\
+  .11.in.hash                                 .11.in.hash
+  a\b\c\1.0\                                  1.0.zip      (run.exe, blahblah.dll, content\x.dat)
+    run.exe
+    blahblah.dll
+    content\x.dat
+```
+
+### `data unpack`
+
+For each game folder `<id>`:
+
+1. Find the `.zip` directly inside `<id>\`. If there is none, nothing happens. If there is more than one, skip with a warning.
+2. Check every entry before extracting anything. If an entry would overwrite an existing file or folder, or would point outside `<id>\`, skip the whole folder with a warning. Nothing is changed.
+3. Extract the entries directly into `<id>\`. Wrapper folders are **not** recreated.
+4. Check each extracted file's size. If something fails, the files this run created are removed and the zip is kept.
+5. Delete the zip. This happens only after everything was extracted.
+
+### Notes
+
+- Packing deletes the original files after verifying the zip. **Test on a copy of a game folder first.**
+- Packing changes what is in the game folder. The stored `.hash` file is not updated, so `hash find` still matches the original file content. If you run `hash calc -f` after packing, the hash will be computed from the zip instead.
+- Unpack restores the content into `<id>\` without the old wrapper folders. The wrapper folder names are not stored in the zip.
+- Running `data pack` again on a folder that is already packed prints a warning and skips it.
 
 ---
 
@@ -270,7 +371,7 @@ Created automatically with placeholder values by the `parser` task if missing. S
 
 | Path | Used by | Notes |
 |---|---|---|
-| `O:\MLGPP\g\` | `hash calc` default, `hash find`, `hash coll` | Games folder. `calc` can be pointed elsewhere; `find` and `coll` cannot. |
+| `O:\MLGPP\g\` | Default games folder for `hash calc`, `hash find`, `hash coll`, `data` | Overridden by `--g_path` or by an explicit path argument. |
 | `O:\MLGPP\logs` | Logger (all runs) | Log folder. Config `logFolderPath` is ignored. |
 | `<cwd>\Resources\config.json` | `parser` | Config file |
 | `O:\MLGPP\Pony.Games\s` | `folders` (inactive) | Target of the unused folder generator |
@@ -328,17 +429,17 @@ Each bug states how it was found:
 - **Actual:** unhandled `ArgumentException` ("no file to check").
 - **Expected:** a usage error message.
 
-### Bug 5: `hash find` and `hash coll` ignore any path *(code reading)*
+### Bug 5: `hash find` and `hash coll` ignore any path *(code reading)* — **fixed**
 
 - **Repro:** change the games folder (e.g. to `D:\games`) and run `hash find` or `hash coll`.
-- **Actual:** both always read `O:\MLGPP\g\`.
-- **Expected:** they use the same games folder as `hash calc`.
+- **Was:** both always read `O:\MLGPP\g\`.
+- **Now:** both use `--g_path` (see [Global options](#global-options)), the same as `hash calc`. Verified with a test folder.
 
-### Bug 6: no task name crashes the program *(verified)*
+### Bug 6: no task name crashes the program *(verified)* — **fixed**
 
 - **Repro:** `run` on its own, or an empty line in interactive mode.
-- **Actual:** unhandled `IndexOutOfRangeException`.
-- **Expected:** a usage message.
+- **Was:** unhandled `IndexOutOfRangeException`.
+- **Now:** prints `error: no task given`.
 
 ### Bug 7: end of input in interactive mode crashes *(code reading)*
 
@@ -409,6 +510,17 @@ run hash find "C:\path\to\folder"
 
 # Find identical game folders
 run hash coll
+
+# Use another games folder for any command (global option)
+run hash calc --g_path="D:\games"
+run data pack --g_path="D:\games"
+run hash coll --g_path="D:\games"
+
+# Pack each game's content into one zip (default folder)
+run data pack
+
+# Unpack each game's zip back into its folder
+run data unpack "O:\MLGPP\other"
 
 # Build the games JSON (run from the folder that has Resources\config.json)
 run parser
