@@ -74,6 +74,12 @@ public static class DataPacker {
 
     private static void PackGame(string gameFolder) {
         var id = Path.GetFileName(gameFolder);
+
+        if (FileUtilities.ContainsLinks(gameFolder)) {
+            Logger.LogWarning($"{id}: contains a junction or symbolic link, skipping");
+            return;
+        }
+
         var contentRoot = FindContentRoot(gameFolder);
 
         if (Directory.GetFiles(contentRoot, $"*{ZipExtension}").Length > 0) {
@@ -116,6 +122,12 @@ public static class DataPacker {
 
     private static void UnpackGame(string gameFolder) {
         var id = Path.GetFileName(gameFolder);
+
+        if (FileUtilities.ContainsLinks(gameFolder)) {
+            Logger.LogWarning($"{id}: contains a junction or symbolic link, skipping");
+            return;
+        }
+
         var zips = Directory.GetFiles(gameFolder, $"*{ZipExtension}");
 
         if (zips.Length == 0) {

@@ -144,6 +144,8 @@ Rules:
 | `hash find_all` | Placeholder, does nothing | Stub |
 | `data pack [path\|base]` | Pack each game's content into one zip | Working |
 | `data unpack [path\|base]` | Extract each game's zip back into its folder | Working |
+| `data remove <list-file> [-y]` | Delete all data inside the games listed in a text file (folders kept) | Working |
+| `data shift [path\|base]` | Move data from higher ids into empty lower folders (closes gaps) | Working |
 | `parser` | Read Google Sheet, build games JSON database | Working (needs valid config) |
 | `help` | Would show help | **Not registered**, does nothing |
 | `folders` | Creates 10 000 empty folders in a hard-coded path | **Not registered**, cannot be run |
@@ -237,8 +239,11 @@ Entry: `run data <mode> [path|base]`
 |---|---|
 | `pack` | Packs the content of every numbered game folder into one zip |
 | `unpack` | Extracts the zip in every numbered game folder back into that folder |
+| `remove` | Deletes all data inside the game folders listed in a text file (see [`data remove`](#data-remove)) |
+| `shift` | Moves data from higher ids into empty lower folders (see [`data shift`](#data-shift)) |
 
-- `path` is the games folder. Omit it, or write `base`, to use `--g_path` or the default `O:\MLGPP\g\`.
+- For `pack`, `unpack` and `shift`, `path` is the games folder. Omit it, or write `base`, to use `--g_path` or the default `O:\MLGPP\g\`.
+- For `remove`, the argument is the list file instead (`run data remove <list-file>`). The games folder comes from `--g_path` or the default.
 - Only folders whose names are unsigned integers are processed, the same as `hash calc`.
 - Any other mode prints `unknown data mode` and does nothing.
 
@@ -286,9 +291,84 @@ For each game folder `<id>`:
 4. Check each extracted file's size. If something fails, the files this run created are removed and the zip is kept.
 5. Delete the zip. This happens only after everything was extracted.
 
+### `data remove`
+
+```text
+run data remove <list-file> [-y]
+```
+
+Deletes **all** data inside the game folders listed in `<list-file>`. The game folders themselves are kept, empty.
+
+The list file is a plain text file with one game id per row:
+
+```text
+11
+12
+
+14
+```
+
+- Blank lines and surrounding spaces are ignored.
+- Every line must be an unsigned integer. If any line is not, the command stops **before deleting anything**.
+- Duplicate ids are only processed once.
+- An id with no matching folder in the games folder is skipped with a warning.
+- Only folders whose names are numbers are considered.
+
+What is deleted: every file and every subfolder inside the selected game folder, including `.hash` files. Read-only files are deleted too.
+
+Confirmation:
+
+- Without `-y`, the command lists the selected ids and asks `Delete the data in these game folders? [Y/N]`.
+- With `-y`, there is no prompt. Use this in scripts.
+- If input is piped (not a terminal) and `-y` is missing, the command refuses to run.
+
+Links:
+
+- A game folder that is a junction or symbolic link is **skipped**, so the target's data is never deleted.
+- A junction or symbolic link inside a game folder is removed as a link only. Its target is not touched.
+
+Examples:
+
+```text
+run data remove "C:\lists\old_games.txt"              -> asks for confirmation
+run data remove "C:\lists\old_games.txt" -y           -> no prompt
+run data remove "C:\lists\old_games.txt" --g_path="D:\games" -y
+```
+
+### `data shift`
+
+```text
+run data shift [path|base]
+```
+
+Closes the gaps left by `data remove` (or any other empty folders). Data is moved from higher ids into the lowest empty folder, so the data sits right after the lowest ids.
+
+Example:
+
+```text
+Before                          After
+11\ game.zip                    11\ game.zip
+12\ (empty)                     12\ another_game.zip, .12.in.hash
+13\ another_game.zip            13\ (empty)
+    .13.in.hash
+```
+
+How it works:
+
+- An **empty folder** is a hole. Each hole is filled by the next non-empty folder above it, so the order of the games is kept.
+- Every entry (files and subfolders) of the source folder is moved. The source folder stays, empty.
+- A hash file named `.<id>.in.hash` is renamed to match the new id (`.13.in.hash` → `.12.in.hash`). Other files keep their names.
+- Junctions and symbolic links are never moved or used as targets. They are listed as a warning and skipped.
+- **Nothing is deleted.** Shift only moves.
+- If a move fails (for example a file is in use), the moves already made in that step are reversed and the command stops. Fix the problem and run it again.
+- Running it again when there are no gaps does nothing.
+
+**Game ids change.** Every game moved to a lower id gets a new folder name. Anything that refers to ids outside this tool (for example the games JSON from `parser`) must be regenerated after a shift.
+
 ### Notes
 
 - Packing deletes the original files after verifying the zip. **Test on a copy of a game folder first.**
+- Pack and unpack skip any game folder that contains a junction or symbolic link (they would read or write through the link). A warning is printed.
 - Packing changes what is in the game folder. The stored `.hash` file is not updated, so `hash find` still matches the original file content. If you run `hash calc -f` after packing, the hash will be computed from the zip instead.
 - Unpack restores the content into `<id>\` without the old wrapper folders. The wrapper folder names are not stored in the zip.
 - Running `data pack` again on a folder that is already packed prints a warning and skips it.
@@ -521,6 +601,15 @@ run data pack
 
 # Unpack each game's zip back into its folder
 run data unpack "O:\MLGPP\other"
+
+# Delete all data in the games listed in a file (asks for confirmation)
+run data remove "C:\lists\old_games.txt"
+
+# Same, without the prompt (for scripts)
+run data remove "C:\lists\old_games.txt" -y
+
+# Move data down into empty folders after a removal (changes game ids!)
+run data shift
 
 # Build the games JSON (run from the folder that has Resources\config.json)
 run parser
